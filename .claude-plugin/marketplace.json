@@ -1,0 +1,12 @@
+{
+  "name": "wt",
+  "owner": {
+    "name": "Thurston Sandberg"
+  },
+  "plugins": [
+    {
+      "name": "wt",
+      "source": "./plugins/wt"
+    }
+  ]
+}

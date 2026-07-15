@@ -1,0 +1,31 @@
+{
+  "name": "wt",
+  "version": "1.10.0",
+  "description": "Git worktree helper for isolated feature development",
+  "author": {
+    "name": "Thurston Sandberg"
+  },
+  "keywords": ["git", "worktree", "workflow"],
+  "hooks": {
+    "WorktreeCreate": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/worktree-create.sh"
+          }
+        ]
+      }
+    ],
+    "WorktreeRemove": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/worktree-remove.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

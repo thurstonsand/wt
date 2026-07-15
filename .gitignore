@@ -1,0 +1,23 @@
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test coverage
+coverage.out
+coverage.html
+
+# IDE
+*.swp
+*.swo
+/.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+vendor/

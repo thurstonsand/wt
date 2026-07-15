@@ -1,0 +1,63 @@
+[settings]
+idiomatic_version_file_enable_tools = ["go"]
+
+[tools]
+golangci-lint = "2.12.2"
+"npm:markdownlint-cli2" = "0.18.0"
+
+[tasks.build]
+description = "Build binary to bin/wt"
+run = "go build -o bin/wt ."
+
+[tasks.test]
+description = "Run unit tests"
+run = "go test -v ./..."
+
+[tasks.test-int]
+description = "Run unit+integration tests"
+run = "go test -tags=integration -v ./..."
+
+[tasks.test-coverage]
+description = "Generate coverage.html"
+run = [
+    "go test -tags=integration -coverprofile=coverage.out ./...",
+    "go tool cover -html=coverage.out -o coverage.html",
+]
+
+[tasks.lint]
+description = "Run go mod tidy check, golangci-lint, markdownlint-cli2"
+run = [
+    "go mod tidy -diff",
+    "golangci-lint run ./...",
+    'markdownlint-cli2 "**/*.md"',
+]
+
+[tasks.lint-fix]
+description = "Auto-fix lint issues"
+run = [
+    "go mod tidy",
+    "golangci-lint run --fix ./...",
+    'markdownlint-cli2 --fix "**/*.md"',
+]
+
+[tasks.wt]
+description = "Run wt with arguments: mise run wt -- --version"
+run = "go run ."
+
+[tasks.clean]
+description = "Remove bin/ and coverage artifacts"
+run = "rm -rf bin/ coverage.out coverage.html"
+
+[tasks.install]
+description = "Build and copy to GOPATH/bin"
+depends = ["build"]
+run = "cp bin/wt $(go env GOPATH)/bin/"
+
+[tasks.update-deps]
+description = "Upgrade Go modules and pinned tools, refreshing both lockfiles"
+run = [
+    "go get -u ./...",
+    "go mod tidy",
+    "mise upgrade --bump",
+    "mise lock",
+]
