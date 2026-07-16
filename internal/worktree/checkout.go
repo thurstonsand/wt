@@ -29,14 +29,15 @@ func (m *Manager) defaultParent(branch string) string {
 	return ""
 }
 
-// Checkout creates a managed worktree for an existing branch.
-func (m *Manager) Checkout(opts CheckoutOptions) (*Worktree, error) {
+// Checkout resolves a managed worktree for an existing branch, creating it when needed.
+// The boolean result reports whether a new worktree was created.
+func (m *Manager) Checkout(opts CheckoutOptions) (*Worktree, bool, error) {
 	if opts.Branch == "" {
-		return nil, errors.New("branch name is required")
+		return nil, false, errors.New("branch name is required")
 	}
 
-	if m.Exists(opts.Branch) {
-		return nil, fmt.Errorf("%w: %s", ErrWorktreeExists, opts.Branch)
+	if existing, err := m.Get(opts.Branch); err == nil {
+		return existing, false, nil
 	}
 
 	// Refresh remote-tracking refs so a remote-only branch resolves via git's
@@ -48,12 +49,12 @@ func (m *Manager) Checkout(opts CheckoutOptions) (*Worktree, error) {
 	wtPath := m.WorktreePath(opts.Branch)
 
 	if err := m.git.WorktreeAdd(wtPath, opts.Branch, false, ""); err != nil {
-		return nil, fmt.Errorf("failed to checkout branch: %w", err)
+		return nil, false, fmt.Errorf("failed to checkout branch: %w", err)
 	}
 
 	if err := m.copyIncludes(wtPath, opts.With); err != nil {
 		_ = m.git.WorktreeRemove(wtPath, true)
-		return nil, fmt.Errorf("failed to copy include files: %w", err)
+		return nil, false, fmt.Errorf("failed to copy include files: %w", err)
 	}
 
 	parent := opts.Parent
@@ -63,14 +64,14 @@ func (m *Manager) Checkout(opts CheckoutOptions) (*Worktree, error) {
 	if parent != "" {
 		if err := m.git.SetBranchMeta(opts.Branch, git.BranchMeta{Parent: parent}); err != nil {
 			_ = m.git.WorktreeRemove(wtPath, true)
-			return nil, fmt.Errorf("failed to save branch metadata: %w", err)
+			return nil, false, fmt.Errorf("failed to save branch metadata: %w", err)
 		}
 	}
 
 	meta, err := m.git.GetBranchMeta(opts.Branch)
 	if err != nil {
 		_ = m.git.WorktreeRemove(wtPath, true)
-		return nil, fmt.Errorf("failed to read branch metadata: %w", err)
+		return nil, false, fmt.Errorf("failed to read branch metadata: %w", err)
 	}
 
 	return &Worktree{
@@ -80,5 +81,5 @@ func (m *Manager) Checkout(opts CheckoutOptions) (*Worktree, error) {
 		Branch:       opts.Branch,
 		BranchMeta:   meta,
 		git:          git.New(wtPath),
-	}, nil
+	}, true, nil
 }

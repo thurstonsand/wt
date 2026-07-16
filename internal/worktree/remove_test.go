@@ -55,6 +55,36 @@ func TestRemoveDeletesBranch(t *testing.T) {
 	}
 }
 
+func TestRemoveValidateOnlyLeavesWorktreeAndBranch(t *testing.T) {
+	r := testutil.InitGitRepo(t)
+	g := git.New(r.Dir)
+	mgr, err := NewManager(r.Dir, WithGit(g), WithGlobalStore(config.NewGlobalStore(t.TempDir())))
+	if err != nil {
+		t.Fatal(err)
+	}
+	wt, err := mgr.Fork(ForkOptions{Name: "validate-only"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := mgr.Remove(RemoveOptions{Name: wt.Name, ValidateOnly: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.WorktreeName != wt.Name {
+		t.Errorf("WorktreeName = %q, want %q", result.WorktreeName, wt.Name)
+	}
+	if result.WorktreePath != wt.WorktreePath {
+		t.Errorf("WorktreePath = %q, want %q", result.WorktreePath, wt.WorktreePath)
+	}
+	if _, err := os.Stat(wt.WorktreePath); err != nil {
+		t.Errorf("validate-only removed worktree: %v", err)
+	}
+	if exists, _ := g.LocalBranchExists(wt.Branch); !exists {
+		t.Error("validate-only removed branch")
+	}
+}
+
 func TestRemovePreservesBranch(t *testing.T) {
 	r := testutil.InitGitRepo(t)
 	g := git.New(r.Dir)

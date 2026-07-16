@@ -130,6 +130,40 @@ func TestRebranchDirtyOnly(t *testing.T) {
 	}
 }
 
+func TestRebranchMoveRenamesWorktree(t *testing.T) {
+	e := setupRebranchEnv(t)
+	wt := e.forkAndPush(t, "wt1")
+	e.land(t, "wt1")
+
+	e.r.AtWorktree(wt.WorktreePath).WriteFile("continued.txt", "more work")
+	newPath := e.mgr.WorktreePath("feature/continued")
+
+	res, err := e.mgr.Rebranch(RebranchOptions{
+		NewBranch:   "feature/continued",
+		ForWorktree: "wt1",
+		Move:        true,
+	})
+	if err != nil {
+		t.Fatalf("rebranch failed: %v", err)
+	}
+
+	if res.WorktreePath != newPath {
+		t.Errorf("WorktreePath = %q, want %q", res.WorktreePath, newPath)
+	}
+	if res.WorktreeName != filepath.Base(newPath) {
+		t.Errorf("WorktreeName = %q, want %q", res.WorktreeName, filepath.Base(newPath))
+	}
+	if _, err := os.Stat(wt.WorktreePath); !os.IsNotExist(err) {
+		t.Errorf("old worktree path should be gone, got %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(newPath, "continued.txt")); err != nil {
+		t.Errorf("dirty work not carried to moved worktree: %v", err)
+	}
+	if branch := e.r.AtWorktree(newPath).Run("rev-parse", "--abbrev-ref", "HEAD"); branch != "feature/continued\n" {
+		t.Errorf("expected branch feature/continued, got %q", branch)
+	}
+}
+
 func TestRebranchRefusesNotLanded(t *testing.T) {
 	e := setupRebranchEnv(t)
 	e.forkAndPush(t, "wt1")
@@ -165,7 +199,7 @@ func TestRebranchRefusesNameCollision(t *testing.T) {
 	}
 }
 
-func TestRebranchConflictPreservesWorktree(t *testing.T) {
+func TestRebranchConflictPreservesMovedWorktree(t *testing.T) {
 	e := setupRebranchEnv(t)
 	wt := e.forkAndPush(t, "wt1")
 
@@ -182,14 +216,20 @@ func TestRebranchConflictPreservesWorktree(t *testing.T) {
 	wr := e.r.AtWorktree(wt.WorktreePath)
 	wr.WriteFile("feature.txt", "my conflicting edit\n")
 
-	res, err := e.mgr.Rebranch(RebranchOptions{NewBranch: "wt1-cont", ForWorktree: "wt1"})
+	res, err := e.mgr.Rebranch(RebranchOptions{NewBranch: "wt1-cont", ForWorktree: "wt1", Move: true})
 	if !errors.Is(err, ErrRebranchConflict) {
 		t.Fatalf("expected ErrRebranchConflict, got %v", err)
 	}
 	if res == nil || !res.Conflict {
 		t.Fatal("result should report conflict")
 	}
-	branch := wr.Run("rev-parse", "--abbrev-ref", "HEAD")
+	if res.WorktreePath != e.mgr.WorktreePath("wt1-cont") {
+		t.Errorf("conflict path = %q, want %q", res.WorktreePath, e.mgr.WorktreePath("wt1-cont"))
+	}
+	if _, err := os.Stat(wt.WorktreePath); !os.IsNotExist(err) {
+		t.Errorf("old worktree path should be gone, got %v", err)
+	}
+	branch := e.r.AtWorktree(res.WorktreePath).Run("rev-parse", "--abbrev-ref", "HEAD")
 	if branch != "wt1-cont\n" {
 		t.Errorf("worktree should be on wt1-cont, got %q", branch)
 	}

@@ -13,6 +13,7 @@ func newRebranchCmd() *cobra.Command {
 	var opts struct {
 		forWorktree string
 		onto        string
+		move        bool
 	}
 
 	cmd := &cobra.Command{
@@ -21,17 +22,19 @@ func newRebranchCmd() *cobra.Command {
 		Long: `Re-seat a landed worktree onto a fresh baseline under a new branch.
 
 A worktree is "landed" once its branch was pushed, merged via PR/MR, and
-deleted on the remote. rebranch keeps the same directory, rebaselines onto
-origin's default branch under <new-branch>, and carries uncommitted changes
-forward. The spent branch is left behind for 'wt prune --all'; committed
-work is never destroyed.
+deleted on the remote. rebranch rebaselines onto origin's default branch
+under <new-branch> and carries uncommitted changes forward. By default the
+worktree stays in the same directory; --move renames it to match the new
+branch. The spent branch is left behind for 'wt prune --all'; committed work
+is never destroyed.
 
 Run from inside the worktree, or target another with -w.
 
 Examples:
   wt rebranch feature-2                      # rebranch the current worktree
   wt rebranch feature-2 -w wt1               # rebranch the wt1 worktree
-  wt rebranch feature-2 --onto develop       # rebranch onto develop`,
+  wt rebranch feature-2 --onto develop       # rebranch onto develop
+  wt rebranch feature-2 --move               # also rename the directory`,
 		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: cobra.NoFileCompletions,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -44,10 +47,13 @@ Examples:
 				NewBranch:   args[0],
 				ForWorktree: opts.forWorktree,
 				Onto:        opts.onto,
+				Move:        opts.move,
 			})
 			if err != nil {
 				if res != nil && res.Conflict {
 					printRebranchConflict(cmd, res)
+				}
+				if res != nil && res.Moved {
 					shell.PrintWithCD(res.WorktreePath)
 				}
 				return err
@@ -61,6 +67,7 @@ Examples:
 
 	cmd.Flags().StringVarP(&opts.forWorktree, "for-worktree", "w", "", "worktree to rebranch (defaults to current)")
 	cmd.Flags().StringVar(&opts.onto, "onto", "", "baseline to rebranch onto (defaults to origin's default branch)")
+	cmd.Flags().BoolVar(&opts.move, "move", false, "rename the worktree directory to match the new branch")
 	_ = cmd.RegisterFlagCompletionFunc("for-worktree", completeWorktreeNames(false))
 
 	return cmd

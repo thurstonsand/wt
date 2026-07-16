@@ -164,6 +164,14 @@ Invoke with `/wt` or let Claude auto-invoke based on context.
 
 The plugin also registers `WorktreeCreate` / `WorktreeRemove` hooks so Claude Code's `EnterWorktree` tool creates and tears down worktrees via `wt fork` and `wt rm`. The branches are preserved. If the requested name matches an existing branch — local or on `origin`, it is checked out with upstream tracking. Otherwise a new worktree is forked clean from `origin`'s default branch (resolved via `origin/HEAD`, falling back to `main` then `master`).
 
+## pi extension
+
+```bash
+pi install npm:pi-wt
+```
+
+The extension provides `/wt fork`, `checkout`/`co`, `rm`, `merge`, and `rebranch`. It moves the live pi session into the destination worktree—or home before removal—without restarting pi or changing the session ID. See [`plugins/pi/README.md`](plugins/pi/README.md) for details.
+
 ---
 
 ## Command reference
@@ -202,7 +210,7 @@ wt checkout --with file.txt feat   # copy an extra include pattern this run
 | `-p, --parent <branch>` | Parent for merge/rebase tracking (defaults to origin's default) |
 | `--with <pattern>`      | Extra include pattern for this run (repeatable)                 |
 
-Unlike `fork`, this doesn't create a new branch. It checks out an existing one into a managed worktree.
+Unlike `fork`, this doesn't create a new branch. It checks out an existing one into a managed worktree, or returns the existing worktree if that branch is already checked out.
 
 ### wt merge
 
@@ -245,14 +253,16 @@ Uncommitted changes are stashed and restored automatically. On conflict, use `gi
 wt rebranch feature-2                # from inside a landed worktree
 wt rebranch feature-2 -w wt1         # target another worktree by name
 wt rebranch feature-2 --onto develop # re-seat onto a different baseline
+wt rebranch feature-2 --move         # also rename the worktree directory
 ```
 
 | Flag                        |                                                                 |
 | --------------------------- | --------------------------------------------------------------- |
 | `-w, --for-worktree <name>` | Worktree to rebranch (defaults to current)                      |
 | `--onto <branch>`           | Baseline to rebranch onto (defaults to origin's default branch) |
+| `--move`                    | Rename the worktree directory to match the new branch           |
 
-When a worktree's branch has _landed_ — pushed, merged via PR/MR, and deleted on the remote — `wt rebranch` re-seats it onto a fresh baseline under a new branch, keeping the same directory and carrying uncommitted changes forward. The merged branch is left behind so that committed work is never destroyed; drop it later with `wt prune`.
+When a worktree's branch has _landed_ — pushed, merged via PR/MR, and deleted on the remote — `wt rebranch` re-seats it onto a fresh baseline under a new branch, keeping the same directory by default and carrying uncommitted changes forward. With `--move`, git relocates the worktree to the new branch's sanitized directory name before dirty state is restored. The merged branch is left behind so that committed work is never destroyed; drop it later with `wt prune`.
 
 ### wt rm
 

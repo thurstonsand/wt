@@ -12,11 +12,12 @@ import (
 
 func newMergeCmd() *cobra.Command {
 	var opts struct {
-		squash bool
-		rebase bool
-		staged bool
-		force  bool
-		base   string
+		squash       bool
+		rebase       bool
+		staged       bool
+		force        bool
+		base         string
+		deferRemoval bool
 	}
 
 	cmd := &cobra.Command{
@@ -60,10 +61,11 @@ On conflict, the worktree is preserved for manual resolution.`,
 			}
 
 			mergeOpts := worktree.MergeOptions{
-				Name:  name,
-				Mode:  mode,
-				Force: opts.force,
-				Base:  opts.base,
+				Name:         name,
+				Mode:         mode,
+				Force:        opts.force,
+				Base:         opts.base,
+				DeferRemoval: opts.deferRemoval,
 			}
 
 			result, err := mgr.Merge(mergeOpts)
@@ -75,6 +77,11 @@ On conflict, the worktree is preserved for manual resolution.`,
 			}
 
 			out := cmd.OutOrStdout()
+			if opts.deferRemoval {
+				_, _ = fmt.Fprintln(out, result.WorktreePath)
+				shell.PrintWithCD(result.TargetPath)
+				return nil
+			}
 			switch result.Mode {
 			case config.MergeModeSquash, config.MergeModeRebase:
 				_, _ = fmt.Fprintf(out, "Merged %q into %q\n", result.WorktreeName, result.TargetBranch)
@@ -95,6 +102,8 @@ On conflict, the worktree is preserved for manual resolution.`,
 	cmd.Flags().BoolVar(&opts.staged, "staged", false, "apply changes as staged (no commit)")
 	cmd.Flags().BoolVarP(&opts.force, "force", "f", false, "allow merging into protected branches")
 	cmd.Flags().StringVar(&opts.base, "base", "", "parent branch to merge into (required for external worktrees)")
+	cmd.Flags().BoolVar(&opts.deferRemoval, "defer-removal", false, "leave the merged worktree in place")
+	_ = cmd.Flags().MarkHidden("defer-removal")
 
 	return cmd
 }

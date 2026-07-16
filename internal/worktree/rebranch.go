@@ -2,6 +2,8 @@ package worktree
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/thurstonsand/wt/internal/git"
 )
@@ -12,11 +14,12 @@ type RebranchOptions struct {
 	ForWorktree string // Worktree to target (optional if run inside one).
 	Onto        string // Baseline to rebranch onto; defaults to origin/<default>.
 	Remote      string // Remote to rebaseline from; defaults to "origin".
+	Move        bool   // Rename the worktree directory to match NewBranch.
 }
 
 // RebranchResult describes the outcome of a rebranch.
 type RebranchResult struct {
-	WorktreeName  string // Folder name, preserved across the rebranch.
+	WorktreeName  string // Folder name after the rebranch.
 	WorktreePath  string
 	OldBranch     string // The spent branch, left behind for prune.
 	NewBranch     string
@@ -24,6 +27,7 @@ type RebranchResult struct {
 	StaleCommits  int    // Commits on the old branch not on the baseline.
 	IndexRestored bool   // Whether the staged/unstaged split was preserved.
 	Conflict      bool   // True when dirty-state restore hit a conflict.
+	Moved         bool   // True when the worktree directory was relocated.
 }
 
 // Rebranch re-seats a landed worktree onto a fresh baseline under a new branch,
@@ -52,6 +56,17 @@ func (m *Manager) Rebranch(opts RebranchOptions) (*RebranchResult, error) {
 	}
 
 	wtGit := git.New(wt.WorktreePath)
+	movePath := wt.WorktreePath
+	if opts.Move {
+		movePath = m.WorktreePath(opts.NewBranch)
+		if movePath != wt.WorktreePath {
+			if _, statErr := os.Stat(movePath); statErr == nil {
+				return nil, fmt.Errorf("worktree destination already exists: %s", movePath)
+			} else if !os.IsNotExist(statErr) {
+				return nil, fmt.Errorf("failed to check worktree destination: %w", statErr)
+			}
+		}
+	}
 
 	hasRemotes, err := m.git.HasRemotes()
 	if err == nil && hasRemotes {
@@ -94,6 +109,19 @@ func (m *Manager) Rebranch(opts RebranchOptions) (*RebranchResult, error) {
 
 	if err = m.git.SetBranchMeta(opts.NewBranch, git.BranchMeta{Parent: baseline}); err != nil {
 		return nil, fmt.Errorf("failed to save branch metadata: %w", err)
+	}
+
+	if movePath != wt.WorktreePath {
+		if err = m.git.WorktreeMove(wt.WorktreePath, movePath); err != nil {
+			if hasStash {
+				_ = wtGit.StashPop()
+			}
+			return result, fmt.Errorf("failed to move worktree: %w", err)
+		}
+		result.WorktreeName = filepath.Base(movePath)
+		result.WorktreePath = movePath
+		result.Moved = true
+		wtGit = git.New(movePath)
 	}
 
 	if !hasStash {

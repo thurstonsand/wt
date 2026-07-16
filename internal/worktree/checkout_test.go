@@ -3,7 +3,6 @@
 package worktree
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -31,7 +30,7 @@ func TestCheckout(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	wt, err := mgr.Checkout(CheckoutOptions{Branch: "develop"})
+	wt, _, err := mgr.Checkout(CheckoutOptions{Branch: "develop"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -79,7 +78,7 @@ func TestCheckoutFromLinkedWorktree(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	wt, err := nested.Checkout(CheckoutOptions{Branch: "develop"})
+	wt, _, err := nested.Checkout(CheckoutOptions{Branch: "develop"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,14 +107,23 @@ func TestCheckoutDuplicate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = mgr.Checkout(CheckoutOptions{Branch: "develop"})
+	first, created, err := mgr.Checkout(CheckoutOptions{Branch: "develop"})
 	if err != nil {
 		t.Fatal(err)
 	}
+	if !created {
+		t.Fatal("first checkout should create a worktree")
+	}
 
-	_, err = mgr.Checkout(CheckoutOptions{Branch: "develop"})
-	if !errors.Is(err, ErrWorktreeExists) {
-		t.Errorf("expected ErrWorktreeExists, got %v", err)
+	second, created, err := mgr.Checkout(CheckoutOptions{Branch: "develop"})
+	if err != nil {
+		t.Fatalf("checkout of existing worktree failed: %v", err)
+	}
+	if created {
+		t.Fatal("second checkout should reuse the worktree")
+	}
+	if second.WorktreePath != first.WorktreePath {
+		t.Errorf("existing worktree path = %q, want %q", second.WorktreePath, first.WorktreePath)
 	}
 }
 
@@ -133,7 +141,7 @@ func TestCheckoutNonexistentBranch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = mgr.Checkout(CheckoutOptions{Branch: "nonexistent"})
+	_, _, err = mgr.Checkout(CheckoutOptions{Branch: "nonexistent"})
 	if err == nil {
 		t.Error("expected error for nonexistent branch, got nil")
 	}
@@ -162,7 +170,7 @@ func TestCheckoutCopiesIncludeFiles(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	wt, err := mgr.Checkout(CheckoutOptions{Branch: "feature"})
+	wt, _, err := mgr.Checkout(CheckoutOptions{Branch: "feature"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -189,7 +197,7 @@ func TestCheckoutWithNonexistentParent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	wt, err := mgr.Checkout(CheckoutOptions{Branch: "feature", Parent: "no-such-branch"})
+	wt, _, err := mgr.Checkout(CheckoutOptions{Branch: "feature", Parent: "no-such-branch"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -223,7 +231,7 @@ func TestCheckoutWithExtraFiles(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	wt, err := mgr.Checkout(CheckoutOptions{
+	wt, _, err := mgr.Checkout(CheckoutOptions{
 		Branch: "feature-with",
 		With:   []string{"extra.txt"},
 	})
@@ -261,7 +269,7 @@ func TestCheckoutStampsDefaultParent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := mgr.Checkout(CheckoutOptions{Branch: "feature"}); err != nil {
+	if _, _, err := mgr.Checkout(CheckoutOptions{Branch: "feature"}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -288,7 +296,7 @@ func TestCheckoutDefaultParentLocalFallback(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := mgr.Checkout(CheckoutOptions{Branch: "feature"}); err != nil {
+	if _, _, err := mgr.Checkout(CheckoutOptions{Branch: "feature"}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -324,7 +332,7 @@ func TestCheckoutTracksRemoteBranchAfterFetch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	wt, err := mgr.Checkout(CheckoutOptions{Branch: "feature-remote"})
+	wt, _, err := mgr.Checkout(CheckoutOptions{Branch: "feature-remote"})
 	if err != nil {
 		t.Fatalf("checkout of remote-only branch failed: %v", err)
 	}

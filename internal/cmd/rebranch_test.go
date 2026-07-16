@@ -69,6 +69,39 @@ func TestRebranchSuccess(t *testing.T) {
 	}
 }
 
+func TestRebranchMove(t *testing.T) {
+	r := testutil.InitGitRepo(t)
+	oldPath := landWorktree(t, r, "wt1")
+	r.AtWorktree(oldPath).WriteFile("continued.txt", "more work")
+
+	if err := os.Chdir(oldPath); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := runCmd("rebranch", "next/feature", "--move"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if err := os.Chdir(r.Dir); err != nil {
+		t.Fatal(err)
+	}
+	pathBuf, err := runCmd("path", "next/feature")
+	if err != nil {
+		t.Fatal(err)
+	}
+	newPath := strings.TrimSpace(pathBuf.String())
+	if newPath == oldPath {
+		t.Fatal("--move should change the worktree path")
+	}
+	if filepath.Base(newPath) != "next--feature" {
+		t.Errorf("moved folder = %q, want next--feature", filepath.Base(newPath))
+	}
+	if _, err := os.Stat(oldPath); !os.IsNotExist(err) {
+		t.Errorf("old worktree path should be gone, got %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(newPath, "continued.txt")); err != nil {
+		t.Errorf("dirty work not carried: %v", err)
+	}
+}
+
 func TestRebranchRefusesNotLanded(t *testing.T) {
 	r := testutil.InitGitRepo(t)
 

@@ -12,6 +12,7 @@ import (
 func newRmCmd() *cobra.Command {
 	var force bool
 	var preserveBranch bool
+	var validateOnly bool
 
 	cmd := &cobra.Command{
 		Use:               "rm [name]",
@@ -37,6 +38,7 @@ Fails if the worktree has uncommitted changes unless -f is used.`,
 				Name:           name,
 				Force:          force,
 				PreserveBranch: preserveBranch,
+				ValidateOnly:   validateOnly,
 			}
 
 			result, err := mgr.Remove(opts)
@@ -45,6 +47,13 @@ Fails if the worktree has uncommitted changes unless -f is used.`,
 			}
 
 			out := cmd.OutOrStdout()
+			if validateOnly {
+				_, _ = fmt.Fprintln(out, result.WorktreePath)
+				if result.TargetPath != "" {
+					shell.PrintWithCD(result.TargetPath)
+				}
+				return nil
+			}
 			_, _ = fmt.Fprintf(out, "Removed worktree %q\n", result.WorktreeName)
 			if result.TargetPath != "" {
 				shell.PrintWithCD(result.TargetPath)
@@ -55,6 +64,8 @@ Fails if the worktree has uncommitted changes unless -f is used.`,
 
 	cmd.Flags().BoolVarP(&force, "force", "f", false, "force removal even if worktree is dirty")
 	cmd.Flags().BoolVar(&preserveBranch, "preserve-branch", false, "keep the branch after removing worktree")
+	cmd.Flags().BoolVar(&validateOnly, "validate-only", false, "validate removal without changing the worktree")
+	_ = cmd.Flags().MarkHidden("validate-only")
 
 	return cmd
 }

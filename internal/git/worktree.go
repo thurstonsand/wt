@@ -33,6 +33,12 @@ func (g *Git) WorktreeAdd(path, branch string, createBranch bool, baseCommit str
 	return err
 }
 
+// WorktreeMove relocates a worktree to a new path.
+func (g *Git) WorktreeMove(path, newPath string) error {
+	_, err := g.run(runOpts{}, "worktree", "move", path, newPath)
+	return err
+}
+
 // WorktreeRemove removes a worktree at the given path.
 // If force is true, removes even if dirty.
 func (g *Git) WorktreeRemove(path string, force bool) error {

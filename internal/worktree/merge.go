@@ -22,15 +22,17 @@ var ErrParentDirty = errors.New("target worktree has uncommitted changes")
 
 // MergeOptions configures worktree merge.
 type MergeOptions struct {
-	Name  string
-	Mode  config.MergeMode
-	Force bool
-	Base  string
+	Name         string
+	Mode         config.MergeMode
+	Force        bool
+	Base         string
+	DeferRemoval bool
 }
 
 // MergeResult contains information about a merge (successful or conflicted).
 type MergeResult struct {
 	WorktreeName string
+	WorktreePath string
 	TargetBranch string
 	TargetPath   string
 	Mode         config.MergeMode
@@ -85,6 +87,7 @@ func (m *Manager) Merge(opts MergeOptions) (*MergeResult, error) {
 
 	result := &MergeResult{
 		WorktreeName: wt.Name,
+		WorktreePath: wt.WorktreePath,
 		TargetBranch: targetBranch,
 		TargetPath:   targetWt.Path,
 		Mode:         opts.Mode,
@@ -135,6 +138,10 @@ func (m *Manager) Merge(opts MergeOptions) (*MergeResult, error) {
 			return result, mergeErr
 		}
 		return nil, mergeErr
+	}
+
+	if opts.DeferRemoval {
+		return result, nil
 	}
 
 	if err := targetGit.WorktreeRemove(wt.WorktreePath, true); err != nil {

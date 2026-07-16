@@ -15,11 +15,13 @@ type RemoveOptions struct {
 	Name           string
 	Force          bool
 	PreserveBranch bool
+	ValidateOnly   bool
 }
 
 // RemoveResult contains information about a successful removal.
 type RemoveResult struct {
 	WorktreeName string
+	WorktreePath string
 	TargetPath   string
 }
 
@@ -41,6 +43,15 @@ func (m *Manager) Remove(opts RemoveOptions) (*RemoveResult, error) {
 		fmt.Printf("warning: failed to detect current worktree: %v\n", cwErr)
 	}
 	insideCurrent := current != nil && current.Name == wt.Name
+	result := &RemoveResult{WorktreeName: wt.Name, WorktreePath: wt.WorktreePath}
+	if insideCurrent {
+		result.TargetPath = mainWt.Path
+		if wt.Parent != "" {
+			if parentWt, found, err := mainGit.FindWorktreeByBranch(wt.Parent); err == nil && found {
+				result.TargetPath = parentWt.Path
+			}
+		}
+	}
 
 	if !opts.Force {
 		dirty, err := wt.IsDirty()
@@ -50,6 +61,10 @@ func (m *Manager) Remove(opts RemoveOptions) (*RemoveResult, error) {
 		if dirty {
 			return nil, fmt.Errorf("%w: %s (use -f to force)", ErrWorktreeDirty, wt.Name)
 		}
+	}
+
+	if opts.ValidateOnly {
+		return result, nil
 	}
 
 	if err := mainGit.WorktreeRemove(wt.WorktreePath, opts.Force); err != nil {
@@ -63,17 +78,6 @@ func (m *Manager) Remove(opts RemoveOptions) (*RemoveResult, error) {
 	if !opts.PreserveBranch && !isProtectedBranch(wt.Branch) {
 		if err := mainGit.DeleteBranch(wt.Branch, true); err != nil {
 			fmt.Printf("warning: failed to delete branch %q: %v\n", wt.Branch, err)
-		}
-	}
-
-	result := &RemoveResult{WorktreeName: wt.Name}
-
-	if insideCurrent {
-		result.TargetPath = mainWt.Path
-		if wt.Parent != "" {
-			if parentWt, found, err := mainGit.FindWorktreeByBranch(wt.Parent); err == nil && found {
-				result.TargetPath = parentWt.Path
-			}
 		}
 	}
 

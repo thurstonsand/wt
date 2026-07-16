@@ -21,3 +21,6 @@ Thumbs.db
 
 # Go
 vendor/
+
+# Node
+node_modules/

@@ -81,6 +81,42 @@ func TestMergeSquash(t *testing.T) {
 	}
 }
 
+func TestMergeDeferRemoval(t *testing.T) {
+	r := testutil.InitGitRepo(t)
+	r.Run("checkout", "-b", "develop")
+	mgr, err := NewManager(r.Dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wt, err := mgr.Fork(ForkOptions{Name: "keep-after-merge"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	wr := r.AtWorktree(wt.WorktreePath)
+	wr.CommitFile(t, "kept.txt", "content")
+
+	result, err := mgr.Merge(MergeOptions{
+		Name:         wt.Name,
+		Mode:         config.MergeModeSquash,
+		DeferRemoval: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.WorktreePath != wt.WorktreePath {
+		t.Errorf("WorktreePath = %q, want %q", result.WorktreePath, wt.WorktreePath)
+	}
+	if !mgr.Exists(wt.Name) {
+		t.Error("worktree should remain when removal is deferred")
+	}
+	if _, err := os.Stat(wt.WorktreePath); err != nil {
+		t.Errorf("kept worktree is unavailable: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(r.Dir, "kept.txt")); err != nil {
+		t.Errorf("merge did not land content: %v", err)
+	}
+}
+
 func TestMergeStaged(t *testing.T) {
 	r := testutil.InitGitRepo(t)
 	r.Run("checkout", "-b", "develop")

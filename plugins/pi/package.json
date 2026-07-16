@@ -1,0 +1,58 @@
+{
+  "name": "pi-wt",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Move live pi sessions with wt worktrees",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thurstonsand/wt.git",
+    "directory": "plugins/pi"
+  },
+  "homepage": "https://github.com/thurstonsand/wt#readme",
+  "bugs": {
+    "url": "https://github.com/thurstonsand/wt/issues"
+  },
+  "keywords": [
+    "pi-package",
+    "git",
+    "worktree"
+  ],
+  "engines": {
+    "node": ">=24 <26"
+  },
+  "files": [
+    "extensions",
+    "README.md"
+  ],
+  "pi": {
+    "extensions": [
+      "./extensions/wt.ts"
+    ]
+  },
+  "scripts": {
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "biome check . && tsc --noEmit && vitest run"
+  },
+  "dependencies": {
+    "string-argv": "^0.3.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.4",
+    "@earendil-works/pi-coding-agent": "^0.80.6",
+    "@earendil-works/pi-tui": "^0.80.6",
+    "@types/node": "^25.6.2",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": ">=0.80.6",
+    "@earendil-works/pi-tui": ">=0.80.6"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

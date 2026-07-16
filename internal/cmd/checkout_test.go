@@ -3,7 +3,6 @@
 package cmd
 
 import (
-	"errors"
 	"strings"
 	"testing"
 
@@ -80,12 +79,12 @@ func TestCheckoutDuplicate(t *testing.T) {
 		t.Fatalf("first checkout failed: %v", err)
 	}
 
-	_, err = runCmd("checkout", "develop")
-	if err == nil {
-		t.Fatal("expected error for duplicate worktree")
+	buf, err := runCmd("checkout", "develop")
+	if err != nil {
+		t.Fatalf("checkout of existing worktree failed: %v", err)
 	}
-	if !errors.Is(err, worktree.ErrWorktreeExists) {
-		t.Errorf("expected ErrWorktreeExists, got: %v", err)
+	if !strings.Contains(buf.String(), "Checked out") {
+		t.Errorf("expected existing checkout to report its destination, got %q", buf.String())
 	}
 }
 

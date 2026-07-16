@@ -27,7 +27,7 @@ func newCheckoutCmd() *cobra.Command {
 				return err
 			}
 
-			wt, err := mgr.Checkout(worktree.CheckoutOptions{
+			wt, created, err := mgr.Checkout(worktree.CheckoutOptions{
 				Branch: args[0],
 				Parent: opts.parent,
 				With:   opts.with,
@@ -36,11 +36,13 @@ func newCheckoutCmd() *cobra.Command {
 				return err
 			}
 
-			cfg, _, err := mgr.Store().LoadConfig()
-			if err != nil {
-				_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "warning: failed to load config for hooks: %v\n", err)
-			} else {
-				mgr.RunPostCreateHooks(cfg, wt.WorktreePath, cmd.ErrOrStderr())
+			if created {
+				cfg, _, err := mgr.Store().LoadConfig()
+				if err != nil {
+					_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "warning: failed to load config for hooks: %v\n", err)
+				} else {
+					mgr.RunPostCreateHooks(cfg, wt.WorktreePath, cmd.ErrOrStderr())
+				}
 			}
 
 			out := cmd.OutOrStdout()
