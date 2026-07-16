@@ -1,9 +1,29 @@
+min_version = "2026.7.4"
+
 [settings]
 idiomatic_version_file_enable_tools = ["go"]
 
+[env]
+HK_MISE = "1"
+
+[hooks]
+enter = "mise install --quiet"
+postinstall = "hk install --mise --quiet"
+
 [tools]
 golangci-lint = "2.12.2"
+hk = "1.50.0"
 "npm:markdownlint-cli2" = "0.18.0"
+
+[tasks.check-versions]
+description = "Check tool version files for consistency"
+run = '''
+go_mod_version="$(awk '/^go [0-9]/ {print $2; exit}' go.mod)"
+go_version="$(tr -d '[:space:]' < .go-version)"
+if [ "$go_mod_version" != "$go_version" ]; then
+  echo "wt: go.mod ($go_mod_version) and .go-version ($go_version) disagree — sync them" >&2
+fi
+'''
 
 [tasks.build]
 description = "Build binary to bin/wt"
@@ -26,6 +46,7 @@ run = [
 
 [tasks.lint]
 description = "Run go mod tidy check, golangci-lint, markdownlint-cli2"
+depends = ["check-versions"]
 run = [
     "go mod tidy -diff",
     "golangci-lint run ./...",

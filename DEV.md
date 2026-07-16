@@ -1,8 +1,14 @@
 # DEV.md
 
+## Setup
+
+```sh
+mise trust && mise bootstrap
+```
+
 ## Commands
 
-`mise` is required to be installed, inform the user to do so if it is not. Always prefer these tasks over running anything directly.
+If `mise` is unavailable, inform the user. Always prefer these tasks over running anything directly.
 
 ```bash
 mise run build          # Build binary to bin/wt

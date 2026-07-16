@@ -8,13 +8,16 @@ A CLI that wraps `git worktree` with dirty-state forking, merge-back modes, and 
 go install github.com/thurstonsand/wt@latest
 ```
 
-Or from source:
+Or from source with `mise`:
 
 ```bash
 git clone git@github.com:thurstonsand/wt.git
 cd wt
-mise run install  # or: go install .
+mise trust && mise bootstrap
+mise run install
 ```
+
+If you have mise's shell activation, `mise bootstrap` will run automatically after you trust the repo.
 
 ## Shell integration
 
