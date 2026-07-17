@@ -1,10 +1,33 @@
-import { parseArgsStringToArgv } from "string-argv";
-
 export const SUBCOMMANDS = ["fork", "checkout", "co", "rm", "merge", "rebranch"] as const;
 export type WtSubcommand = (typeof SUBCOMMANDS)[number];
 
 export function tokenizeCommandArgs(input: string): string[] {
-  return parseArgsStringToArgv(input);
+  const args: string[] = [];
+  let current = "";
+  let quote: "'" | '"' | undefined;
+  let started = false;
+
+  for (const character of input) {
+    if (quote) {
+      if (character === quote) quote = undefined;
+      else current += character;
+    } else if (character === "'" || character === '"') {
+      quote = character;
+      started = true;
+    } else if (/\s/.test(character)) {
+      if (started) {
+        args.push(current);
+        current = "";
+        started = false;
+      }
+    } else {
+      current += character;
+      started = true;
+    }
+  }
+
+  if (started) args.push(current);
+  return args;
 }
 
 export function parseSubcommand(args: string[]): { command: WtSubcommand; args: string[] } {

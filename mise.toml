@@ -12,6 +12,7 @@ postinstall = "npm --prefix plugins/pi ci --ignore-scripts --quiet && hk install
 
 [tools]
 golangci-lint = "2.12.2"
+goreleaser = "2.17.0"
 hk = "1.50.0"
 node = "24"
 "npm:markdownlint-cli2" = "0.18.0"
@@ -75,9 +76,17 @@ run = [
 description = "Run wt with arguments: mise run wt -- --version"
 run = "go run ."
 
+[tasks.release-check]
+description = "Validate release configuration and artifacts"
+run = [
+    "goreleaser check",
+    "goreleaser release --snapshot --clean",
+    "cd plugins/pi && npm pack --dry-run",
+]
+
 [tasks.clean]
-description = "Remove bin/ and coverage artifacts"
-run = "rm -rf bin/ coverage.out coverage.html"
+description = "Remove build and coverage artifacts"
+run = "rm -rf bin/ dist/ coverage.out coverage.html"
 
 [tasks.install]
 description = "Build and copy to GOPATH/bin"

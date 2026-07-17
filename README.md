@@ -5,6 +5,12 @@ A CLI that wraps `git worktree` with dirty-state forking, merge-back modes, and 
 ## Install
 
 ```bash
+brew install thurstonsand/tap/wt
+```
+
+Or with Go:
+
+```bash
 go install github.com/thurstonsand/wt@latest
 ```
 
@@ -167,7 +173,7 @@ The plugin also registers `WorktreeCreate` / `WorktreeRemove` hooks so Claude Co
 ## pi extension
 
 ```bash
-pi install npm:pi-wt
+pi install npm:@thurstonsand/pi-wt
 ```
 
 The extension provides `/wt fork`, `checkout`/`co`, `rm`, `merge`, and `rebranch`. It moves the live pi session into the destination worktree—or home before removal—without restarting pi or changing the session ID. See [`plugins/pi/README.md`](plugins/pi/README.md) for details.

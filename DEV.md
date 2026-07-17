@@ -20,7 +20,8 @@ mise run lint-fix       # Auto-fix lint issues
 mise run wt -- [ARGS]   # Run wt with arguments: mise run wt -- --version
 mise run install        # Build and copy to $(go env GOPATH)/bin
 mise run update-deps    # Upgrade Go modules + pinned tools, refresh lockfiles
-mise run clean          # Remove bin/ and coverage artifacts
+mise run release-check  # Build snapshot release artifacts and dry-run npm packaging
+mise run clean          # Remove build and coverage artifacts
 ```
 
 Run a single test:

@@ -7,12 +7,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Release builds set version with a linker flag; module metadata supports go install.
 var version = "dev"
 
 func init() {
-	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" {
-		version = info.Main.Version
+	info, ok := debug.ReadBuildInfo()
+	version = resolveVersion(version, info, ok)
+}
+
+func resolveVersion(linkerVersion string, info *debug.BuildInfo, hasBuildInfo bool) string {
+	if linkerVersion != "dev" {
+		return linkerVersion
 	}
+	if hasBuildInfo && info.Main.Version != "" && info.Main.Version != "(devel)" {
+		return info.Main.Version
+	}
+	return linkerVersion
 }
 
 // NewRootCmd creates the root command for wt.

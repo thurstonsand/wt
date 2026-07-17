@@ -5,7 +5,7 @@ description: Cut a release for wt — bump the version, update the changelog, ta
 
 # Cut a Release
 
-A release is a **git tag** whose message is that version's changelog entry, verbatim. No platform release object (GitLab/GitHub) is created — the tag is the release.
+A release starts from an annotated **git tag** whose message is that version's changelog entry, verbatim. Pushing the tag publishes signed binaries to a GitHub Release, updates the Homebrew tap, and publishes the matching `@thurstonsand/pi-wt` version to npm.
 
 ## 1. Determine the version
 
@@ -81,13 +81,32 @@ git cat-file -p vX.Y.Z | head -20
 git push && git push origin vX.Y.Z
 ```
 
-## 7. Verify the tag is installable
+## 7. Watch publishing
 
-Prove the tag is fetchable and carries the right version. For a Go module:
+Watch the tag-triggered release workflow through completion:
 
 ```bash
-go list -m <module-path>@latest        # must resolve to vX.Y.Z
-go install <module-path>@latest
+gh run list --workflow Release --branch vX.Y.Z --limit 5
+gh run watch <run-id> --exit-status
 ```
 
-Run the freshly installed binary's version flag and confirm it prints `vX.Y.Z`. `go install` writes to `GOBIN`; if an older copy earlier on `PATH` shadows it, inspect the `GOBIN` binary directly rather than trusting `which`.
+Do not report success until the binary, Homebrew, and npm jobs all pass.
+
+## 8. Verify every channel
+
+Prove the Go module tag, GitHub artifacts, Homebrew cask, and npm package all carry the release version:
+
+```bash
+go list -m github.com/thurstonsand/wt@latest
+go install github.com/thurstonsand/wt@latest
+"$(go env GOPATH)/bin/wt" --version
+
+gh release view vX.Y.Z
+brew update
+brew upgrade thurstonsand/tap/wt || brew install thurstonsand/tap/wt
+wt --version
+
+npm view @thurstonsand/pi-wt@X.Y.Z version
+```
+
+Every version check must report `vX.Y.Z` for `wt` or `X.Y.Z` for npm.

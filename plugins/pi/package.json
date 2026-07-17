@@ -1,5 +1,5 @@
 {
-  "name": "pi-wt",
+  "name": "@thurstonsand/pi-wt",
   "version": "0.1.0",
   "type": "module",
   "description": "Move live pi sessions with wt worktrees",
@@ -36,9 +36,6 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "biome check . && tsc --noEmit && vitest run"
-  },
-  "dependencies": {
-    "string-argv": "^0.3.2"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.4",

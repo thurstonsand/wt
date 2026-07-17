@@ -1,0 +1,84 @@
+version: 2
+
+project_name: wt
+
+builds:
+  - id: wt
+    main: .
+    binary: wt
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X github.com/thurstonsand/wt/internal/cmd.version=v{{ .Version }}
+
+notarize:
+  macos:
+    - enabled: '{{ isEnvSet "MACOS_SIGN_P12" }}'
+      ids:
+        - wt
+      sign:
+        certificate: "{{ .Env.MACOS_SIGN_P12 }}"
+        password: "{{ .Env.MACOS_SIGN_PASSWORD }}"
+      notarize:
+        issuer_id: "{{ .Env.MACOS_NOTARY_ISSUER_ID }}"
+        key_id: "{{ .Env.MACOS_NOTARY_KEY_ID }}"
+        key: "{{ .Env.MACOS_NOTARY_KEY_PATH }}"
+        wait: true
+        timeout: 20m
+
+archives:
+  - id: wt
+    ids:
+      - wt
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: checksums.txt
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  disable: true
+
+release:
+  name_template: "{{ .Tag }}"
+
+homebrew_casks:
+  - name: wt
+    ids:
+      - wt
+    binaries:
+      - wt
+    repository:
+      owner: thurstonsand
+      name: homebrew-tap
+      branch: main
+      git:
+        url: git@github.com:thurstonsand/homebrew-tap.git
+        private_key: '{{ if isEnvSet "HOMEBREW_TAP_PRIVATE_KEY" }}{{ .Env.HOMEBREW_TAP_PRIVATE_KEY }}{{ end }}'
+    homepage: https://github.com/thurstonsand/wt
+    description: Friendly Git worktree manager
+    license: MIT
+    skip_upload: auto
+    url:
+      verified: github.com/thurstonsand/wt

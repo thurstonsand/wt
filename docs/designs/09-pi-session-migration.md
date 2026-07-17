@@ -84,7 +84,7 @@ The rename happens **before** the rebase, so a conflict state is resolved at the
 `plugins/pi/` is a pi package (`package.json` with the `pi` key), sitting parallel to the Claude Code plugin in `plugins/wt/`, published to npm:
 
 ```bash
-pi install npm:pi-wt
+pi install npm:@thurstonsand/pi-wt
 ```
 
 ## Design Decisions

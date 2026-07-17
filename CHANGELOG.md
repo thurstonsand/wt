@@ -8,7 +8,8 @@ All notable user-facing changes to `wt` are recorded here. The format follows
 
 ### Added
 
-- A `pi-wt` extension now moves live pi sessions with worktrees through `/wt fork`, `co`, `rm`, `merge`, and `rebranch`.
+- The `@thurstonsand/pi-wt` extension now moves live pi sessions with worktrees through `/wt fork`, `co`, `rm`, `merge`, and `rebranch`.
+- Signed and notarized release binaries are available through GitHub Releases and Homebrew.
 - `wt rebranch --move` renames a re-seated worktree directory to match its new branch.
 - `wt checkout` now returns an existing worktree for the requested branch, allowing session migration to recover after a worktree was created successfully but its session copy failed.
 

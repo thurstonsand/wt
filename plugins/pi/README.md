@@ -7,7 +7,7 @@ A [pi](https://github.com/earendil-works/pi-mono) extension for moving the live 
 Install `wt` first, then install the extension:
 
 ```bash
-pi install npm:pi-wt
+pi install npm:@thurstonsand/pi-wt
 ```
 
 Both commands must inherit a `PATH` containing the `wt` binary.

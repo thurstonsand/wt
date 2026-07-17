@@ -1,0 +1,122 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up mise
+        uses: jdx/mise-action@v4
+        with:
+          install: true
+          cache: true
+
+      - name: Lint
+        run: mise run lint
+
+      - name: Test
+        run: mise run test-int
+
+      - name: Check npm package
+        working-directory: plugins/pi
+        run: npm pack --dry-run
+
+  publish-release:
+    name: Publish binaries
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      APPLE_NOTARY_KEY: ${{ secrets.APPLE_NOTARY_KEY }}
+      GITHUB_TOKEN: ${{ github.token }}
+      HOMEBREW_TAP_PRIVATE_KEY: ${{ secrets.HOMEBREW_TAP_PRIVATE_KEY }}
+      MACOS_SIGN_P12: ${{ secrets.APPLE_DEVELOPER_ID_CERTIFICATE_BASE64 }}
+      MACOS_SIGN_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+      MACOS_NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
+      MACOS_NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up mise
+        uses: jdx/mise-action@v4
+        with:
+          install: true
+          cache: true
+
+      - name: Validate release secrets
+        run: |
+          test -n "$HOMEBREW_TAP_PRIVATE_KEY"
+          test -n "$MACOS_SIGN_P12"
+          test -n "$MACOS_SIGN_PASSWORD"
+          test -n "$MACOS_NOTARY_KEY_ID"
+          test -n "$MACOS_NOTARY_ISSUER_ID"
+          test -n "$APPLE_NOTARY_KEY"
+
+      - name: Write notarization key
+        run: |
+          key_path="$RUNNER_TEMP/notary-key.p8"
+          printf '%s' "$APPLE_NOTARY_KEY" > "$key_path"
+          chmod 600 "$key_path"
+          echo "MACOS_NOTARY_KEY_PATH=$key_path" >> "$GITHUB_ENV"
+
+      - name: Prepare release notes
+        run: scripts/extract-release-notes.sh "$GITHUB_REF_NAME" > "$RUNNER_TEMP/release-notes.md"
+
+      - name: Publish release
+        run: goreleaser release --clean --release-notes "$RUNNER_TEMP/release-notes.md"
+
+  publish-npm:
+    name: Publish @thurstonsand/pi-wt
+    needs: [ci, publish-release]
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: plugins/pi
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+          cache-dependency-path: plugins/pi/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set package version
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: npm version "${VERSION#v}" --no-git-tag-version
+
+      - name: Check package
+        run: npm pack --dry-run
+
+      - name: Publish package
+        run: npm publish --access public
