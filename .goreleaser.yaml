@@ -80,5 +80,3 @@ homebrew_casks:
     description: Friendly Git worktree manager
     license: MIT
     skip_upload: auto
-    url:
-      verified: github.com/thurstonsand/wt
