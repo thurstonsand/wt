@@ -1,16 +1,17 @@
+<!-- markdownlint-disable MD024 -->
+
 # Changelog
 
-All notable user-facing changes to `wt` are recorded here. The format follows
-[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and `wt` adheres to
-[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## Unreleased
+## v1.12.0
 
 ### Added
 
-- The `@thurstonsand/pi-wt` extension now moves live pi sessions with worktrees through `/wt fork`, `co`, `rm`, `merge`, and `rebranch`.
+- The `@thurstonsand/pi-wt` extension now moves live pi sessions with worktrees through `/wt fork`, `checkout`/`co`, `rm`, `merge`, and `rebranch`.
 - Signed and notarized release binaries are available through GitHub Releases and Homebrew.
 - `wt rebranch --move` renames a re-seated worktree directory to match its new branch.
+
+### Changed
+
 - `wt checkout` now returns an existing worktree for the requested branch, allowing session migration to recover after a worktree was created successfully but its session copy failed.
 
 ## v1.11.0
