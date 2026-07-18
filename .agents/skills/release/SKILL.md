@@ -90,7 +90,15 @@ gh run list --workflow Release --branch vX.Y.Z --limit 5
 gh run watch <run-id> --exit-status
 ```
 
-Do not report success until the binary, Homebrew, and npm jobs all pass.
+GoReleaser pushes the generated cask to `thurstonsand/homebrew-tap`, which triggers a separate `Casks` workflow. The release workflow does not wait for that downstream audit. Find the run for the exact generated tap commit and watch it too:
+
+```bash
+tap_sha=$(gh api "repos/thurstonsand/homebrew-tap/commits?path=Casks/wt.rb&per_page=1" --jq '.[0].sha')
+gh run list --repo thurstonsand/homebrew-tap --workflow Casks --commit "$tap_sha" --limit 1
+gh run watch <tap-run-id> --repo thurstonsand/homebrew-tap --exit-status
+```
+
+Do not report success until the binary and npm jobs in the release workflow pass **and** the downstream Homebrew cask workflow passes.
 
 ## 8. Verify every channel
 
@@ -99,12 +107,15 @@ Prove the Go module tag, GitHub artifacts, Homebrew cask, and npm package all ca
 ```bash
 go list -m github.com/thurstonsand/wt@latest
 go install github.com/thurstonsand/wt@latest
-"$(go env GOPATH)/bin/wt" --version
+go_bin=$(go env GOBIN)
+[[ -n "$go_bin" ]] || go_bin="$(go env GOPATH)/bin"
+"$go_bin/wt" --version
 
 gh release view vX.Y.Z
 brew update
 brew upgrade thurstonsand/tap/wt || brew install thurstonsand/tap/wt
-wt --version
+brew info --cask thurstonsand/tap/wt
+"$(brew --prefix)/bin/wt" --version
 
 npm view @thurstonsand/pi-wt@X.Y.Z version
 ```

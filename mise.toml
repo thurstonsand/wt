@@ -7,8 +7,7 @@ idiomatic_version_file_enable_tools = ["go"]
 HK_MISE = "1"
 
 [hooks]
-enter = "mise install --quiet"
-postinstall = "npm --prefix plugins/pi ci --ignore-scripts --quiet && hk install --mise --quiet"
+enter = "mise bootstrap --yes --quiet"
 
 [tools]
 golangci-lint = "2.12.2"
@@ -16,6 +15,21 @@ goreleaser = "2.17.0"
 hk = "1.50.0"
 node = "24"
 "npm:markdownlint-cli2" = "0.18.0"
+
+[tasks.bootstrap]
+description = "Install pi dependencies and git hooks"
+run = [
+    "npm --prefix plugins/pi ci --ignore-scripts --quiet --no-fund --no-audit",
+    "hk install --mise --quiet",
+]
+sources = [
+    "mise.toml",
+    "hk.pkl",
+    "plugins/pi/package.json",
+    "plugins/pi/package-lock.json",
+]
+outputs = ["plugins/pi/node_modules/.package-lock.json", ".git/hooks/pre-commit"]
+quiet = true
 
 [tasks.check-versions]
 description = "Check tool version files for consistency"
