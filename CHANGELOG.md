@@ -2,6 +2,12 @@
 
 # Changelog
 
+## v1.13.0
+
+### Added
+
+- The `@thurstonsand/pi-wt` extension can move a live session to any directory with `/mv`, preserving its conversation and ID without requiring `wt`; `/wt` commands remain available when `wt` is installed.
+
 ## v1.12.0
 
 ### Added
