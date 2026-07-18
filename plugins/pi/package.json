@@ -2,7 +2,7 @@
   "name": "@thurstonsand/pi-wt",
   "version": "0.1.0",
   "type": "module",
-  "description": "Move live pi sessions with wt worktrees",
+  "description": "Move live pi sessions between directories and wt worktrees",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -15,6 +15,7 @@
   },
   "keywords": [
     "pi-package",
+    "session",
     "git",
     "worktree"
   ],

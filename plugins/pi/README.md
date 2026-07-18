@@ -1,18 +1,26 @@
 # pi-wt
 
-A [pi](https://github.com/earendil-works/pi-mono) extension for moving the live session with [`wt`](https://github.com/thurstonsand/wt) worktrees.
+Session mobility for [pi](https://github.com/earendil-works/pi-mono), with built-in support for additionally managing [`wt`](https://github.com/thurstonsand/wt) worktrees.
 
 ## Install
-
-Install `wt` first, then install the extension:
 
 ```bash
 pi install npm:@thurstonsand/pi-wt
 ```
 
-Both commands must inherit a `PATH` containing the `wt` binary.
+Use the `/mv` command out of the box, and install [wt](../../README.md) to gain access to the additional `/wt` command.
 
 ## Usage
+
+Move the live session to any existing directory:
+
+```text
+/mv <dir>
+```
+
+The session continues immediately in the new folder.
+
+Move the session as part of a `wt` worktree operation:
 
 ```text
 /wt fork [name] [flags]
@@ -23,13 +31,9 @@ Both commands must inherit a `PATH` containing the `wt` binary.
 /wt rebranch <branch> [flags]
 ```
 
-The extension delegates git and filesystem work to `wt`. It relocates the current session file without changing its ID, then asks pi to switch to that file in-process. `rm` and `merge` move a session home before deleting its worktree. `rebranch` also renames the worktree directory to match the new branch.
-
-Other `wt` commands remain terminal commands. Argument completion is provided by `wt __complete`, so branch names and flags match the CLI.
-
 ## Limitation
 
-Moving a session does not refresh pi's process environment. Restart pi after moving to a branch whose `.envrc`, secrets, or other environment setup differs.
+Moving a session does not refresh pi's process environment, meaning env vars don't update based on the new directory (e.g. by direnv or mise). If you need the new env, close the session after moving, `cd` to the new directory, and run `pi --session <uuid>` to pick them up.
 
 ## Development
 

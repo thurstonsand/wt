@@ -17,10 +17,11 @@
 - **Parallel stream**: An independent line of work, each in its own worktree, typically headed for its own MR.
 - **Landed**: A worktree whose branch was pushed, merged via PR/MR, and deleted on the remote.
 - **Rebranch**: Re-seating a **landed** worktree onto a fresh baseline under a new branch, keeping the same directory and carrying its uncommitted dirty-state forward.
+- **Session migration**: Relocating a live pi session into another directory's session store.
 
 ## Relationships
 
 - A **fork** produces one **worktree** on a new branch, recording its **parent**.
 - A **worktree** merges back onto its **parent**.
 - A **rebranch** re-seats a **landed** **worktree** on a new branch off fresh **parent**.
-- **I** build `wt` with **you**; **the agent** uses `wt`.
+- In the pi extension, `/mv` performs a **session migration**, while `/wt` operations also execute the associated **worktree** action.

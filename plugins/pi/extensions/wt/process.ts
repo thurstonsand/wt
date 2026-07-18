@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { homedir } from "node:os";
 import type { Readable } from "node:stream";
 
 export interface WtResult {
@@ -6,6 +7,7 @@ export interface WtResult {
   stderr: string;
   cd?: string;
   code: number;
+  spawnErrorCode?: string;
 }
 
 export class WtError extends Error {
@@ -57,12 +59,17 @@ export function execWt(args: string[], cwd: string): Promise<WtResult> {
           stderr:
             stderr || (error.code === "ENOENT" ? "wt binary not found on PATH" : error.message),
           code: 127,
+          ...(error.code ? { spawnErrorCode: error.code } : {}),
         });
         return;
       }
       resolve({ stdout, stderr, ...(cd.trim() ? { cd: cd.trim() } : {}), code: code ?? 1 });
     });
   });
+}
+
+export async function isWtInstalled(): Promise<boolean> {
+  return (await execWt(["--version"], homedir())).spawnErrorCode === undefined;
 }
 
 export async function runWt(args: string[], cwd: string): Promise<WtResult> {

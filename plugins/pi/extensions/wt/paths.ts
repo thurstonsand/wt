@@ -1,5 +1,12 @@
 import { realpath } from "node:fs/promises";
+import { homedir } from "node:os";
 import { isAbsolute, relative, resolve, sep } from "node:path";
+
+export function expandPath(input: string, cwd: string, home: string = homedir()): string {
+  if (input === "~") return resolve(home);
+  if (input.startsWith("~/")) return resolve(home, input.slice(2));
+  return resolve(cwd, input);
+}
 
 export async function canonicalPath(path: string): Promise<string> {
   try {

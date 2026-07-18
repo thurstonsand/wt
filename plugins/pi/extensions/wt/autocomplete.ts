@@ -11,7 +11,7 @@ const descriptions: Record<WtSubcommand, string> = {
   rebranch: "Re-seat and rename the current (landed) worktree",
 };
 
-function splitCompletionPrefix(prefix: string): { words: string[]; partial: string } {
+export function splitCompletionPrefix(prefix: string): { words: string[]; partial: string } {
   const tokens = tokenizeCommandArgs(prefix);
   if (/\s$/.test(prefix)) return { words: tokens, partial: "" };
   return { words: tokens.slice(0, -1), partial: tokens.at(-1) ?? "" };
