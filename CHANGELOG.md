@@ -2,6 +2,12 @@
 
 # Changelog
 
+## v1.13.1
+
+### Fixed
+
+- `@thurstonsand/pi-wt` extension no longer crashes pi while typing a `/wt` command on Bun-based installs.
+
 ## v1.13.0
 
 ### Added
