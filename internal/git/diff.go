@@ -66,6 +66,18 @@ func (g *Git) Add(paths []string) error {
 	return err
 }
 
+// AddAll stages the current state of the given paths, including deletions.
+func (g *Git) AddAll(paths []string) error {
+	if len(paths) == 0 {
+		return nil
+	}
+	args := make([]string, 0, 3+len(paths))
+	args = append(args, "add", "-A", "--")
+	args = append(args, paths...)
+	_, err := g.run(runOpts{}, args...)
+	return err
+}
+
 // Remove deletes paths from the working tree and stages the removal.
 func (g *Git) Remove(paths []string) error {
 	if len(paths) == 0 {

@@ -17,8 +17,8 @@ var ErrProtectedBranch = errors.New("cannot commit directly to protected branch"
 // ErrTargetNotCheckedOut indicates the target branch is not checked out anywhere.
 var ErrTargetNotCheckedOut = errors.New("target branch not checked out")
 
-// ErrParentDirty indicates the parent repo has uncommitted changes.
-var ErrParentDirty = errors.New("target worktree has uncommitted changes")
+// ErrSourceDirty indicates the source worktree has uncommitted changes.
+var ErrSourceDirty = errors.New("source worktree has uncommitted changes")
 
 // MergeOptions configures worktree merge.
 type MergeOptions struct {
@@ -71,13 +71,14 @@ func (m *Manager) Merge(opts MergeOptions) (*MergeResult, error) {
 
 	targetGit := git.New(targetWt.Path)
 
-	if opts.Mode != config.MergeModeStaged {
-		dirty, derr := targetGit.IsDirty()
-		if derr != nil {
-			return nil, fmt.Errorf("failed to check dirty state: %w", derr)
+	if opts.Mode != config.MergeModeStaged && !opts.Force {
+		var dirty bool
+		dirty, err = wt.IsDirty()
+		if err != nil {
+			return nil, fmt.Errorf("failed to check source dirty state: %w", err)
 		}
 		if dirty {
-			return nil, fmt.Errorf("%w: commit or stash changes before merge", ErrParentDirty)
+			return nil, fmt.Errorf("%w: commit or stash changes, or use --force to discard them", ErrSourceDirty)
 		}
 	}
 
@@ -96,7 +97,15 @@ func (m *Manager) Merge(opts MergeOptions) (*MergeResult, error) {
 	// Get HEAD before merge for commit range calculation.
 	headBefore, err := targetGit.RevParse("HEAD")
 	if err != nil {
-		fmt.Printf("warning: failed to get HEAD: %v\n", err)
+		return nil, fmt.Errorf("failed to get target HEAD: %w", err)
+	}
+
+	targetStashed := false
+	if opts.Mode != config.MergeModeStaged {
+		targetStashed, err = targetGit.StashPushAll("wt merge target state")
+		if err != nil {
+			return nil, fmt.Errorf("failed to stash target worktree changes: %w", err)
+		}
 	}
 
 	var mergeErr error
@@ -109,21 +118,49 @@ func (m *Manager) Merge(opts MergeOptions) (*MergeResult, error) {
 			}
 		}
 	case config.MergeModeRebase:
-		mergeErr = m.mergeRebase(wt, targetBranch, targetGit)
+		mergeErr = m.mergeRebase(wt, targetBranch, targetGit, opts.Force)
 		if mergeErr == nil && headBefore != "" {
 			if commits, err := targetGit.CommitsBetween(headBefore, "HEAD"); err == nil {
 				result.Commits = commits
 			}
 		}
 	case config.MergeModeStaged:
-		if count, err := targetGit.DiffBranchFileCount(targetBranch, wt.Branch); err != nil {
+		state, err := captureDirtyState(wt.git)
+		if err != nil {
+			return nil, fmt.Errorf("failed to capture worktree state: %w", err)
+		}
+		branchFiles, err := targetGit.DiffBranchFiles(targetBranch, wt.Branch)
+		if err != nil {
 			fmt.Printf("warning: failed to count diff files: %v\n", err)
 		} else {
-			result.FileCount = count
+			result.FileCount = state.countWith(branchFiles)
 		}
-		mergeErr = m.mergeStaged(wt, targetGit)
+		mergeErr = m.mergeStaged(wt, targetGit, state)
 	default:
 		return nil, fmt.Errorf("unknown merge mode: %s", opts.Mode)
+	}
+
+	if targetStashed {
+		if mergeErr != nil {
+			if err := targetGit.ResetHard(headBefore); err != nil {
+				return nil, fmt.Errorf("merge failed and target worktree could not be reset: %w", err)
+			}
+		}
+		if err := targetGit.StashPopIndex(); err != nil {
+			if mergeErr != nil {
+				return nil, fmt.Errorf("merge failed and target worktree changes could not be restored: %w", err)
+			}
+			if resetErr := targetGit.ResetHard(headBefore); resetErr != nil {
+				return nil, fmt.Errorf("target worktree changes conflict with the merge and it could not be rolled back: %w", resetErr)
+			}
+			if cleanErr := targetGit.CleanUntracked(); cleanErr != nil {
+				return nil, fmt.Errorf("merge was rolled back but partially restored untracked files could not be removed: %w", cleanErr)
+			}
+			if restoreErr := targetGit.StashPopIndex(); restoreErr != nil {
+				return nil, fmt.Errorf("merge was rolled back but target worktree changes could not be restored: %w", restoreErr)
+			}
+			mergeErr = fmt.Errorf("%w: target worktree changes overlap merged changes; merge was rolled back", ErrMergeConflict)
+		}
 	}
 
 	if mergeErr != nil {
@@ -185,10 +222,16 @@ func (m *Manager) mergeSquash(wt *Worktree, targetGit *git.Git) error {
 	return nil
 }
 
-func (m *Manager) mergeRebase(wt *Worktree, targetBranch string, targetGit *git.Git) error {
+func (m *Manager) mergeRebase(wt *Worktree, targetBranch string, targetGit *git.Git, force bool) error {
 	wtGit := git.New(wt.WorktreePath)
 
-	if err := wtGit.Rebase(targetBranch); err != nil {
+	var err error
+	if force {
+		err = wtGit.RebaseAutostash(targetBranch)
+	} else {
+		err = wtGit.Rebase(targetBranch)
+	}
+	if err != nil {
 		hasConflicts, checkErr := wtGit.HasConflicts()
 		if checkErr == nil && hasConflicts {
 			return fmt.Errorf("%w: %w", ErrMergeConflict, err)
@@ -203,13 +246,16 @@ func (m *Manager) mergeRebase(wt *Worktree, targetBranch string, targetGit *git.
 	return nil
 }
 
-func (m *Manager) mergeStaged(wt *Worktree, targetGit *git.Git) error {
+func (m *Manager) mergeStaged(wt *Worktree, targetGit *git.Git, state dirtyState) error {
 	if err := targetGit.MergeSquash(wt.Branch); err != nil {
 		hasConflicts, checkErr := targetGit.HasConflicts()
 		if checkErr == nil && hasConflicts {
 			return fmt.Errorf("%w: %w", ErrMergeConflict, err)
 		}
 		return fmt.Errorf("failed to stage changes: %w", err)
+	}
+	if err := state.apply(wt.git, targetGit); err != nil {
+		return fmt.Errorf("failed to transfer worktree state: %w", err)
 	}
 	return nil
 }

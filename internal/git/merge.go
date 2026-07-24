@@ -60,13 +60,22 @@ func (g *Git) RebaseAbort() error {
 	return err
 }
 
-// DiffBranchFileCount returns the number of files changed between two branches.
-func (g *Git) DiffBranchFileCount(from, to string) (int, error) {
+// DiffBranchFiles returns files changed between two branches.
+func (g *Git) DiffBranchFiles(from, to string) ([]string, error) {
 	out, err := g.run(runOpts{}, "diff", "--name-only", from+"..."+to)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return countNonEmptyLines(out), nil
+	if out == "" {
+		return nil, nil
+	}
+	return strings.Split(out, "\n"), nil
+}
+
+// DiffBranchFileCount returns the number of files changed between two branches.
+func (g *Git) DiffBranchFileCount(from, to string) (int, error) {
+	files, err := g.DiffBranchFiles(from, to)
+	return len(files), err
 }
 
 // Commit creates a commit with the given message.

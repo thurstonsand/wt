@@ -166,6 +166,111 @@ func TestMergeStaged(t *testing.T) {
 	}
 }
 
+func TestMergeStagedIncludesUncommittedChanges(t *testing.T) {
+	r := testutil.InitGitRepo(t)
+	r.Run("checkout", "-b", "develop")
+	r.CommitFile(t, "modified.txt", "original")
+	r.CommitFile(t, "unstaged.txt", "original")
+
+	mgr, err := NewManager(r.Dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	wt, err := mgr.Fork(ForkOptions{Name: "staged-dirty-state"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	wtRepo := r.AtWorktree(wt.WorktreePath)
+	wtRepo.WriteFile("staged.txt", "staged content\n")
+	wtRepo.Run("add", "staged.txt")
+	wtRepo.WriteFile("unstaged.txt", "unstaged content\n")
+	wtRepo.WriteFile("untracked.txt", "untracked content\n")
+	wtRepo.WriteFile("modified.txt", "staged version\n")
+	wtRepo.Run("add", "modified.txt")
+	wtRepo.WriteFile("modified.txt", "final version\n")
+
+	_, err = mgr.Merge(MergeOptions{Name: wt.Name, Mode: config.MergeModeStaged})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	for path, want := range map[string]string{
+		"staged.txt":    "staged content\n",
+		"unstaged.txt":  "unstaged content\n",
+		"untracked.txt": "untracked content\n",
+		"modified.txt":  "final version\n",
+	} {
+		got, err := os.ReadFile(filepath.Join(r.Dir, path))
+		if err != nil {
+			t.Errorf("%s was not transferred: %v", path, err)
+			continue
+		}
+		if string(got) != want {
+			t.Errorf("%s = %q, want %q", path, got, want)
+		}
+	}
+
+	status := r.Run("status", "--short")
+	for _, want := range []string{
+		"A  staged.txt",
+		" M unstaged.txt",
+		"?? untracked.txt",
+		"MM modified.txt",
+	} {
+		if !strings.Contains(status, want) {
+			t.Errorf("status missing %q:\n%s", want, status)
+		}
+	}
+	if mgr.Exists(wt.Name) {
+		t.Error("worktree should be deleted after its dirty state is transferred")
+	}
+}
+
+func TestMergeStagedPreservesInitialParentStateSplit(t *testing.T) {
+	r := testutil.InitGitRepo(t)
+	r.Run("checkout", "-b", "develop")
+	r.CommitFile(t, "shared.txt", "original")
+	r.WriteFile("shared.txt", "parent state\n")
+	r.Run("add", "shared.txt")
+
+	mgr, err := NewManager(r.Dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wt, err := mgr.Fork(ForkOptions{Name: "staged-overlap"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	wtRepo := r.AtWorktree(wt.WorktreePath)
+	wtRepo.WriteFile("shared.txt", "worktree state\n")
+	wtRepo.WriteFile("untracked.txt", "must survive\n")
+
+	_, err = mgr.Merge(MergeOptions{Name: wt.Name, Mode: config.MergeModeStaged})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if mgr.Exists(wt.Name) {
+		t.Fatal("worktree should be deleted after its state is transferred")
+	}
+	got, err := os.ReadFile(filepath.Join(r.Dir, "shared.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != "worktree state\n" {
+		t.Errorf("shared.txt = %q", got)
+	}
+	status := r.Run("status", "--short")
+	if !strings.Contains(status, "MM shared.txt") {
+		t.Errorf("shared.txt split was not preserved:\n%s", status)
+	}
+	if !strings.Contains(status, "?? untracked.txt") {
+		t.Errorf("untracked file was not preserved:\n%s", status)
+	}
+}
+
 func TestMergeRebase(t *testing.T) {
 	r := testutil.InitGitRepo(t)
 	r.Run("checkout", "-b", "develop")
@@ -213,6 +318,59 @@ func TestMergeRebase(t *testing.T) {
 	}
 	if !strings.Contains(log, "rebase commit 1") || !strings.Contains(log, "rebase commit 2") {
 		t.Errorf("rebase should preserve original commit messages, got:\n%s", log)
+	}
+}
+
+func TestMergeCommittedModesRejectDirtySourceUnlessForced(t *testing.T) {
+	for _, mode := range []config.MergeMode{config.MergeModeSquash, config.MergeModeRebase} {
+		t.Run(string(mode), func(t *testing.T) {
+			r := testutil.InitGitRepo(t)
+			r.Run("checkout", "-b", "develop")
+
+			mgr, err := NewManager(r.Dir)
+			if err != nil {
+				t.Fatal(err)
+			}
+			wt, err := mgr.Fork(ForkOptions{Name: "dirty-" + string(mode)})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			wtRepo := r.AtWorktree(wt.WorktreePath)
+			wtRepo.CommitFile(t, "committed.txt", "committed")
+			wtRepo.WriteFile("README.md", "dirty tracked state\n")
+			wtRepo.Run("add", "README.md")
+			wtRepo.WriteFile("untracked.txt", "dirty untracked state\n")
+
+			_, err = mgr.Merge(MergeOptions{Name: wt.Name, Mode: mode})
+			if !errors.Is(err, ErrSourceDirty) {
+				t.Fatalf("expected ErrSourceDirty, got: %v", err)
+			}
+			if !mgr.Exists(wt.Name) {
+				t.Fatal("dirty worktree was deleted without force")
+			}
+
+			_, err = mgr.Merge(MergeOptions{Name: wt.Name, Mode: mode, Force: true})
+			if err != nil {
+				t.Fatalf("forced merge failed: %v", err)
+			}
+			if mgr.Exists(wt.Name) {
+				t.Fatal("forced merge should delete the worktree")
+			}
+			if _, err := os.Stat(filepath.Join(r.Dir, "committed.txt")); err != nil {
+				t.Fatalf("committed change was not merged: %v", err)
+			}
+			if _, err := os.Stat(filepath.Join(r.Dir, "untracked.txt")); !os.IsNotExist(err) {
+				t.Errorf("forced merge retained untracked source state: %v", err)
+			}
+			readme, err := os.ReadFile(filepath.Join(r.Dir, "README.md"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(readme) != "# Test\n" {
+				t.Errorf("forced merge retained staged source state: %q", readme)
+			}
+		})
 	}
 }
 
@@ -310,35 +468,97 @@ func TestMergeTargetNotCheckedOut(t *testing.T) {
 	}
 }
 
-func TestMergeParentDirty(t *testing.T) {
-	r := testutil.InitGitRepo(t)
-	r.Run("checkout", "-b", "develop")
+func TestMergeCommittedModesRestoreDirtyTarget(t *testing.T) {
+	for _, mode := range []config.MergeMode{config.MergeModeSquash, config.MergeModeRebase} {
+		t.Run(string(mode), func(t *testing.T) {
+			r := testutil.InitGitRepo(t)
+			r.Run("checkout", "-b", "develop")
+			r.CommitFile(t, "target-staged.txt", "original")
+			r.CommitFile(t, "target-unstaged.txt", "original")
 
-	mgr, err := NewManager(r.Dir)
-	if err != nil {
-		t.Fatal(err)
+			mgr, err := NewManager(r.Dir)
+			if err != nil {
+				t.Fatal(err)
+			}
+			wt, err := mgr.Fork(ForkOptions{Name: "dirty-target-" + string(mode)})
+			if err != nil {
+				t.Fatal(err)
+			}
+			wtRepo := r.AtWorktree(wt.WorktreePath)
+			wtRepo.CommitFile(t, "merged.txt", "merged")
+
+			r.WriteFile("target-staged.txt", "staged target state\n")
+			r.Run("add", "target-staged.txt")
+			r.WriteFile("target-unstaged.txt", "unstaged target state\n")
+			r.WriteFile("target-untracked.txt", "untracked target state\n")
+
+			_, err = mgr.Merge(MergeOptions{Name: wt.Name, Mode: mode})
+			if err != nil {
+				t.Fatalf("merge with dirty target failed: %v", err)
+			}
+
+			status := r.Run("status", "--short")
+			for _, want := range []string{
+				"M  target-staged.txt",
+				" M target-unstaged.txt",
+				"?? target-untracked.txt",
+			} {
+				if !strings.Contains(status, want) {
+					t.Errorf("status missing %q:\n%s", want, status)
+				}
+			}
+			if _, err := os.Stat(filepath.Join(r.Dir, "merged.txt")); err != nil {
+				t.Errorf("committed source change was not merged: %v", err)
+			}
+		})
 	}
+}
 
-	wt, err := mgr.Fork(ForkOptions{Name: "dirty-parent"})
-	if err != nil {
-		t.Fatal(err)
-	}
+func TestMergeCommittedModesRollbackWhenDirtyTargetOverlaps(t *testing.T) {
+	for _, mode := range []config.MergeMode{config.MergeModeSquash, config.MergeModeRebase} {
+		t.Run(string(mode), func(t *testing.T) {
+			r := testutil.InitGitRepo(t)
+			r.Run("checkout", "-b", "develop")
+			r.CommitFile(t, "shared.txt", "original")
+			headBefore := strings.TrimSpace(r.Run("rev-parse", "HEAD"))
 
-	wtRepo := r.AtWorktree(wt.WorktreePath)
-	wtRepo.WriteFile("test.txt", "test")
-	wtRepo.Run("add", "test.txt")
-	wtRepo.Run("commit", "-m", "test")
+			mgr, err := NewManager(r.Dir)
+			if err != nil {
+				t.Fatal(err)
+			}
+			wt, err := mgr.Fork(ForkOptions{Name: "target-conflict-" + string(mode)})
+			if err != nil {
+				t.Fatal(err)
+			}
+			wtRepo := r.AtWorktree(wt.WorktreePath)
+			wtRepo.WriteFile("shared.txt", "source state\n")
+			wtRepo.Run("add", "shared.txt")
+			wtRepo.Run("commit", "-m", "source state")
 
-	r.WriteFile("dirty.txt", "dirty")
+			r.WriteFile("shared.txt", "target state\n")
+			r.Run("add", "shared.txt")
 
-	_, err = mgr.Merge(MergeOptions{Name: "dirty-parent", Mode: config.MergeModeSquash})
-	if !errors.Is(err, ErrParentDirty) {
-		t.Errorf("expected ErrParentDirty, got: %v", err)
-	}
-
-	_, err = mgr.Merge(MergeOptions{Name: "dirty-parent", Mode: config.MergeModeStaged})
-	if err != nil {
-		t.Fatalf("staged should allow dirty parent: %v", err)
+			_, err = mgr.Merge(MergeOptions{Name: wt.Name, Mode: mode})
+			if !errors.Is(err, ErrMergeConflict) {
+				t.Fatalf("expected ErrMergeConflict, got: %v", err)
+			}
+			if !mgr.Exists(wt.Name) {
+				t.Fatal("source worktree was deleted after rollback")
+			}
+			if headAfter := strings.TrimSpace(r.Run("rev-parse", "HEAD")); headAfter != headBefore {
+				t.Errorf("target HEAD = %s, want rollback to %s", headAfter, headBefore)
+			}
+			got, err := os.ReadFile(filepath.Join(r.Dir, "shared.txt"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(got) != "target state\n" {
+				t.Errorf("target dirty state = %q", got)
+			}
+			if status := r.Run("status", "--short"); !strings.Contains(status, "M  shared.txt") {
+				t.Errorf("target staging was not restored:\n%s", status)
+			}
+		})
 	}
 }
 

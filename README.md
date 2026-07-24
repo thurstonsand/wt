@@ -225,19 +225,19 @@ wt merge                     # from the worktree (default rebase)
 wt merge feature-x           # from the parent (default rebase)
 wt merge --squash            # squash all commits into one
 wt merge --rebase            # fast-forward to rebased commits
-wt merge --staged            # apply as staged changes, no commit
+wt merge --staged            # apply without committing, preserving dirty-state staging
 wt merge --base main ext-wt  # merge into a specific branch
 ```
 
-| Flag              |                                                      |
-| ----------------- | ---------------------------------------------------- |
-| `--squash`        | Squash all commits into one on parent                |
-| `--rebase`        | Fast-forward parent to rebased commits (default)     |
-| `--staged`        | Apply changes as staged, don't commit                |
-| `-f, --force`     | Allow merge into protected branches (main/master)    |
-| `--base <branch>` | Target branch to merge into (for external worktrees) |
+| Flag              |                                                                          |
+| ----------------- | ------------------------------------------------------------------------ |
+| `--squash`        | Squash all commits into one on parent                                    |
+| `--rebase`        | Fast-forward parent to rebased commits (default)                         |
+| `--staged`        | Apply without committing; preserve staged, unstaged, and untracked state |
+| `-f, --force`     | Discard source dirt and allow protected branches                         |
+| `--base <branch>` | Target branch to merge into (for external worktrees)                     |
 
-Protected branches (main/master) default to `--staged` mode. On success, the worktree and branch are deleted. On conflict, both are preserved so you can resolve manually.
+Squash and rebase refuse a dirty source worktree unless `--force` is given. Dirty target state is stashed and restored automatically. Protected branches (main/master) default to `--staged` mode. On success, the worktree and branch are deleted. On conflict, both are preserved so you can resolve manually.
 
 ### wt rebase
 

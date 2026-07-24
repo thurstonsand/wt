@@ -82,8 +82,8 @@ func TestMergeStaged(t *testing.T) {
 	}
 
 	out := buf.String()
-	if !strings.Contains(out, "Staged changes from") {
-		t.Errorf("expected 'Staged changes from', got: %s", out)
+	if !strings.Contains(out, "Applied changes from") {
+		t.Errorf("expected 'Applied changes from', got: %s", out)
 	}
 
 	status := r.Run("status", "--porcelain")
@@ -313,36 +313,6 @@ func TestMergeTargetNotCheckedOut(t *testing.T) {
 	}
 }
 
-func TestMergeParentDirty(t *testing.T) {
-	r := testutil.InitGitRepo(t)
-	r.Run("checkout", "-b", "develop")
-
-	mgr, err := worktree.NewManager(r.Dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	wt, err := mgr.Fork(worktree.ForkOptions{Name: "dirty-parent"})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	wtRepo := r.AtWorktree(wt.WorktreePath)
-	wtRepo.WriteFile("test.txt", "test")
-	wtRepo.Run("add", "test.txt")
-	wtRepo.Run("commit", "-m", "test commit")
-
-	r.WriteFile("dirty.txt", "dirty")
-
-	_, err = runCmd("merge", "--squash", "dirty-parent")
-	if err == nil {
-		t.Fatal("expected error when parent is dirty")
-	}
-	if !errors.Is(err, worktree.ErrParentDirty) {
-		t.Errorf("expected ErrParentDirty, got: %v", err)
-	}
-}
-
 func TestMergeStagedAllowsDirtyParent(t *testing.T) {
 	r := testutil.InitGitRepo(t)
 	r.Run("checkout", "-b", "develop")
@@ -370,7 +340,7 @@ func TestMergeStagedAllowsDirtyParent(t *testing.T) {
 	}
 
 	out := buf.String()
-	if !strings.Contains(out, "Staged changes from") {
-		t.Errorf("expected 'Staged changes from', got: %s", out)
+	if !strings.Contains(out, "Applied changes from") {
+		t.Errorf("expected 'Applied changes from', got: %s", out)
 	}
 }

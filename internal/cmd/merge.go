@@ -31,7 +31,10 @@ If run from within a worktree, the name argument is optional.
 Merge modes (mutually exclusive):
   --rebase  Fast-forward parent to rebased worktree commits (default)
   --squash  Squash all commits into one on parent
-  --staged  Apply changes as staged (no commit)
+  --staged  Apply without committing, preserving dirty-state staging
+
+Squash and rebase require a clean source worktree.
+Use -f/--force to discard its uncommitted changes.
 
 Protected branches (main/master) default to --staged mode.
 Use -f/--force to allow squash/rebase into protected branches.
@@ -89,7 +92,7 @@ On conflict, the worktree is preserved for manual resolution.`,
 					_, _ = fmt.Fprintf(out, "  %s %s\n", c.Hash, c.Subject)
 				}
 			case config.MergeModeStaged:
-				_, _ = fmt.Fprintf(out, "Staged changes from %q onto %q (%d files)\n",
+				_, _ = fmt.Fprintf(out, "Applied changes from %q onto %q (%d files)\n",
 					result.WorktreeName, result.TargetBranch, result.FileCount)
 			}
 			shell.PrintWithCD(result.TargetPath)
@@ -99,8 +102,8 @@ On conflict, the worktree is preserved for manual resolution.`,
 
 	cmd.Flags().BoolVar(&opts.squash, "squash", false, "squash all commits into one")
 	cmd.Flags().BoolVar(&opts.rebase, "rebase", false, "fast-forward to rebased commits (default)")
-	cmd.Flags().BoolVar(&opts.staged, "staged", false, "apply changes as staged (no commit)")
-	cmd.Flags().BoolVarP(&opts.force, "force", "f", false, "allow merging into protected branches")
+	cmd.Flags().BoolVar(&opts.staged, "staged", false, "apply without committing and preserve dirty-state staging")
+	cmd.Flags().BoolVarP(&opts.force, "force", "f", false, "discard source dirt and allow protected branches")
 	cmd.Flags().StringVar(&opts.base, "base", "", "parent branch to merge into (required for external worktrees)")
 	cmd.Flags().BoolVar(&opts.deferRemoval, "defer-removal", false, "leave the merged worktree in place")
 	_ = cmd.Flags().MarkHidden("defer-removal")

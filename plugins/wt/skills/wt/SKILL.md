@@ -93,14 +93,14 @@ wt merge <name>
 # Squash all commits into one
 wt merge --squash <name>
 
-# Apply as staged changes only (no commit)
+# Apply without committing, preserving staged/unstaged/untracked state
 wt merge --staged <name>
 
 # Merge external worktree (not created by wt fork) to specified branch
 wt merge --base <parent-branch> <name>
 ```
 
-**Protected branches** (main/master): Default to `--staged` mode. Use `-f` to override and use an alternate mode.
+Squash and rebase refuse dirty source worktrees. Use `-f` to discard that state. Dirty target state is stashed and restored automatically. **Protected branches** (main/master) default to `--staged` mode; `-f` also permits an alternate mode.
 
 On success, worktree and branch are automatically deleted. Shell auto-cd's to the parent directory.
 

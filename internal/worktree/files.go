@@ -1,6 +1,7 @@
 package worktree
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -8,7 +9,73 @@ import (
 
 	"github.com/thurstonsand/wt/internal/config"
 	"github.com/thurstonsand/wt/internal/files"
+	"github.com/thurstonsand/wt/internal/git"
 )
+
+type dirtyState struct {
+	stagedFiles   []string
+	stagedDels    []string
+	unstagedFiles []string
+	unstagedDels  []string
+	untracked     []string
+}
+
+func captureDirtyState(source *git.Git) (dirtyState, error) {
+	var state dirtyState
+	var err error
+
+	state.stagedFiles, err = source.DiffNameOnly(true, "d")
+	if err != nil {
+		return state, fmt.Errorf("failed to list staged files: %w", err)
+	}
+	state.stagedDels, err = source.DiffNameOnly(true, "D")
+	if err != nil {
+		return state, fmt.Errorf("failed to list staged deletions: %w", err)
+	}
+	state.unstagedFiles, err = source.DiffNameOnly(false, "d")
+	if err != nil {
+		return state, fmt.Errorf("failed to list unstaged files: %w", err)
+	}
+	state.unstagedDels, err = source.DiffNameOnly(false, "D")
+	if err != nil {
+		return state, fmt.Errorf("failed to list unstaged deletions: %w", err)
+	}
+	state.untracked, err = source.UntrackedFiles()
+	if err != nil {
+		return state, fmt.Errorf("failed to list untracked files: %w", err)
+	}
+	return state, nil
+}
+
+func (s dirtyState) apply(source, target *git.Git) error {
+	if err := source.CheckoutIndexTo(target.Dir(), s.stagedFiles); err != nil {
+		return fmt.Errorf("failed to copy staged files: %w", err)
+	}
+	if err := removeFiles(target.Dir(), s.stagedDels); err != nil {
+		return fmt.Errorf("failed to apply staged deletions: %w", err)
+	}
+	if err := target.AddAll(slices.Concat(s.stagedFiles, s.stagedDels)); err != nil {
+		return fmt.Errorf("failed to stage files: %w", err)
+	}
+	if err := files.CopyFiles(source.Dir(), target.Dir(), s.unstagedFiles); err != nil {
+		return fmt.Errorf("failed to copy unstaged files: %w", err)
+	}
+	if err := removeFiles(target.Dir(), s.unstagedDels); err != nil {
+		return fmt.Errorf("failed to apply unstaged deletions: %w", err)
+	}
+	if err := files.CopyFiles(source.Dir(), target.Dir(), s.untracked); err != nil {
+		return fmt.Errorf("failed to copy untracked files: %w", err)
+	}
+	return nil
+}
+
+func (s dirtyState) countWith(paths []string) int {
+	unique := make(map[string]struct{})
+	for _, path := range slices.Concat(paths, s.stagedFiles, s.stagedDels, s.unstagedFiles, s.unstagedDels, s.untracked) {
+		unique[path] = struct{}{}
+	}
+	return len(unique)
+}
 
 // copyIncludes copies files matching the worktree include patterns into the new
 // worktree. Patterns are layered in ascending precedence — project-level

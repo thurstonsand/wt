@@ -36,6 +36,18 @@ func (g *Git) IsDirty() (bool, error) {
 	return out != "", nil
 }
 
+// ResetHard resets the index and working tree to a revision.
+func (g *Git) ResetHard(revision string) error {
+	_, err := g.run(runOpts{}, "reset", "--hard", revision)
+	return err
+}
+
+// CleanUntracked removes untracked files and directories.
+func (g *Git) CleanUntracked() error {
+	_, err := g.run(runOpts{}, "clean", "-fd")
+	return err
+}
+
 // LocalBranchExists checks if a local branch exists under refs/heads/.
 func (g *Git) LocalBranchExists(name string) (bool, error) {
 	r, _ := g.exec(runOpts{}, "rev-parse", "--verify", "--quiet", "refs/heads/"+name)

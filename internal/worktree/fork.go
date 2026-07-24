@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/thurstonsand/wt/internal/config"
-	"github.com/thurstonsand/wt/internal/files"
 	"github.com/thurstonsand/wt/internal/git"
 )
 
@@ -58,23 +57,11 @@ func (m *Manager) Fork(opts ForkOptions) (*Worktree, error) {
 		}
 	}
 
-	var stagedFiles, stagedDels, unstagedFiles, unstagedDels []string
+	var state dirtyState
 	if !clean {
-		stagedFiles, err = m.git.DiffNameOnly(true, "d")
+		state, err = captureDirtyState(m.git)
 		if err != nil {
-			return nil, fmt.Errorf("failed to list staged files: %w", err)
-		}
-		stagedDels, err = m.git.DiffNameOnly(true, "D")
-		if err != nil {
-			return nil, fmt.Errorf("failed to list staged deletions: %w", err)
-		}
-		unstagedFiles, err = m.git.DiffNameOnly(false, "d")
-		if err != nil {
-			return nil, fmt.Errorf("failed to list unstaged files: %w", err)
-		}
-		unstagedDels, err = m.git.DiffNameOnly(false, "D")
-		if err != nil {
-			return nil, fmt.Errorf("failed to list unstaged deletions: %w", err)
+			return nil, err
 		}
 	}
 
@@ -92,36 +79,9 @@ func (m *Manager) Fork(opts ForkOptions) (*Worktree, error) {
 	}
 
 	if !clean {
-		if err = m.git.CheckoutIndexTo(wtPath, stagedFiles); err != nil {
+		if err = state.apply(m.git, wtGit); err != nil {
 			cleanup()
-			return nil, fmt.Errorf("failed to copy staged files: %w", err)
-		}
-		if err = wtGit.Add(stagedFiles); err != nil {
-			cleanup()
-			return nil, fmt.Errorf("failed to stage files: %w", err)
-		}
-		if err = wtGit.Remove(stagedDels); err != nil {
-			cleanup()
-			return nil, fmt.Errorf("failed to apply staged deletions: %w", err)
-		}
-		if err = files.CopyFiles(m.git.Dir(), wtPath, unstagedFiles); err != nil {
-			cleanup()
-			return nil, fmt.Errorf("failed to copy unstaged files: %w", err)
-		}
-		if err = removeFiles(wtPath, unstagedDels); err != nil {
-			cleanup()
-			return nil, fmt.Errorf("failed to apply unstaged deletions: %w", err)
-		}
-
-		var untracked []string
-		untracked, err = m.git.UntrackedFiles()
-		if err != nil {
-			cleanup()
-			return nil, fmt.Errorf("failed to get untracked files: %w", err)
-		}
-		if err = files.CopyFiles(m.git.Dir(), wtPath, untracked); err != nil {
-			cleanup()
-			return nil, fmt.Errorf("failed to copy untracked files: %w", err)
+			return nil, err
 		}
 	}
 
