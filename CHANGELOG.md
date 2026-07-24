@@ -2,6 +2,13 @@
 
 # Changelog
 
+## v1.13.2
+
+### Fixed
+
+- `wt merge --staged` now preserves staged, unstaged, and untracked source changes before removing the worktree.
+- Squash and rebase refuse dirty sources unless forced, while preserving dirty target state automatically.
+
 ## v1.13.1
 
 ### Fixed
