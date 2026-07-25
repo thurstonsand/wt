@@ -106,10 +106,6 @@ Prove the Go module tag, GitHub artifacts, Homebrew cask, and npm package all ca
 
 ```bash
 go list -m github.com/thurstonsand/wt@latest
-go install github.com/thurstonsand/wt@latest
-go_bin=$(go env GOBIN)
-[[ -n "$go_bin" ]] || go_bin="$(go env GOPATH)/bin"
-"$go_bin/wt" --version
 
 gh release view vX.Y.Z
 brew update
