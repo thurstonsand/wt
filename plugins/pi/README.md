@@ -18,7 +18,7 @@ Move the live session to any existing directory:
 /mv <dir>
 ```
 
-The session continues immediately in the new folder.
+The session continues immediately in the new folder with any env vars pre-loaded.
 
 Move the session as part of a `wt` worktree operation:
 
@@ -30,10 +30,6 @@ Move the session as part of a `wt` worktree operation:
 /wt merge [name] [flags]
 /wt rebranch <branch> [flags]
 ```
-
-## Limitation
-
-Moving a session does not refresh pi's process environment, meaning env vars don't update based on the new directory (e.g. by direnv or mise). If you need the new env, close the session after moving, `cd` to the new directory, and run `pi --session <uuid>` to pick them up.
 
 ## Development
 

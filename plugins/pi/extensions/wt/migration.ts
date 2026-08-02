@@ -1,4 +1,5 @@
 import type { ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
+import { reconcileDirectoryEnv } from "./env-probe.ts";
 import { migrationNotice } from "./migration-notice.ts";
 import { errorText, notifyStderr } from "./notifications.ts";
 import type { WtResult } from "./process.ts";
@@ -42,6 +43,15 @@ export async function migrateSession(
           replacementCtx.ui.notify(
             `Session moved, but the old file could not be removed: ${errorText(error)}`,
             "error",
+          );
+        }
+
+        try {
+          await reconcileDirectoryEnv(migration.oldCwd, migration.newCwd);
+        } catch (error) {
+          replacementCtx.ui.notify(
+            `Session moved, but ${migration.newCwd}'s shell environment could not be loaded: ${errorText(error)}`,
+            "warning",
           );
         }
 

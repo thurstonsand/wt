@@ -34,7 +34,7 @@ Everything downstream of destination discovery already exists and is git-agnosti
 
 ## Known limitations (document, don't solve)
 
-- **Environment staleness**: pi's process env was captured at launch. Cross-repo this is heavier than cross-worktree (`.envrc`, PATH, secrets differ more). README's existing limitation section should call out `/mv` explicitly.
+- **Environment staleness**: pi's process env was captured at launch. Cross-repo this is heavier than cross-worktree (`.envrc`, PATH, secrets differ more). README's existing limitation section should call out `/mv` explicitly. _(Superseded: solved rather than documented — one probe shell fires the destination's directory hooks, and the captured delta is applied to `process.env`. The README section referenced above now describes the behavior instead of the limitation. See `plugins/pi/extensions/wt/env-probe.ts`.)_
 
 ## Test seams
 

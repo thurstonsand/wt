@@ -26,6 +26,10 @@
       "groupName": "GitHub Actions"
     },
     {
+      "matchManagers": ["npm"],
+      "groupName": "npm packages"
+    },
+    {
       "matchManagers": ["mise"],
       "groupName": "mise tools"
     },

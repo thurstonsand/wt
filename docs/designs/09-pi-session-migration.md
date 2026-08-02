@@ -37,7 +37,7 @@ The landing side has the same problem in reverse. The primary landing flow is: p
 
 - Reimplementing any `wt` behavior in TypeScript. Dirty-state transfer, `.worktreeinclude`, merge strategies, branch guards, direnv — all stay in the binary. The extension shells out and surfaces stderr.
 - Changing `wt fork`'s copy semantics. Fork copies dirty state and leaves the source dirty (WYSIWYG); the extension migrates the session, not git state.
-- Migrating process environment. pi's env was captured at launch; a worktree with a different `.envrc` keeps the stale env until pi restarts. Known limitation, stated, not solved.
+- Migrating process environment. pi's env was captured at launch; a worktree with a different `.envrc` keeps the stale env until pi restarts. Known limitation, stated, not solved. _(Superseded: a probe shell now fires the destination's directory hooks and folds the resulting delta into `process.env`, so migrations carry the environment. See `plugins/pi/extensions/wt/env-probe.ts`.)_
 - Rescuing sessions orphaned by running `wt rm` outside pi. pi's own "stored cwd does not exist, continue here?" fallback is the recovery path.
 - Wrapping the rest of the `wt` surface. `list`, `cd`, `prune`, `config` and friends gain nothing from pi integration; a terminal is one keystroke away.
 - Supporting non-pi agents. Claude Code integration already exists in `plugins/wt`.
@@ -136,7 +136,7 @@ A rebranch that keeps its directory has zero session consequence — there would
 - **Another live pi session inside the worktree being removed:** its runtime survives (POSIX; cwd is an inode reference) but its next file operation fails. Same exposure as running `wt rm` today; not the extension's to solve.
 - **Rebranch ends in conflict:** the dir was renamed and the session migrated before the rebase ran, so resolution proceeds in pi at the final path. An abort leaves the rename in place — honest, and consistent with rebranch never destroying committed work.
 - **First fork of a repo:** pi prompts to trust the new directory once; "Trust parent folder (`WT_HOME/worktrees/<repo>`)" silences it for all future worktrees of that repo.
-- **Stale process env:** a branch that changes `.envrc`/secrets does not re-evaluate into the live pi process. Documented limitation (Non-Goals).
+- **Stale process env:** a branch that changes `.envrc`/secrets does not re-evaluate into the live pi process. Documented limitation (Non-Goals). _(Superseded — see the Non-Goals note.)_
 
 ## Rejected Alternatives
 
