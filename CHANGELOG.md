@@ -2,6 +2,12 @@
 
 # Changelog
 
+## v1.14.0
+
+### Added
+
+- Moving a live session with the `@thurstonsand/pi-wt` extension now reconciles its environment with the destination, so direnv variables, mise tools, and `PATH` match the new directory instead of staying stale until pi is relaunched. Applies to `/mv` and every relocating `/wt` command.
+
 ## v1.13.2
 
 ### Fixed
