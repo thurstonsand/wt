@@ -122,10 +122,12 @@ describe("directory environment reconciliation", () => {
     const root = await mkdtemp(join(tmpdir(), "pi-wt-env-"));
     const destination = join(root, "destination");
     await mkdir(destination);
-    const shell = join(root, "zsh");
+    // Stands in for bash rather than zsh: the stub has to be interpreted by a
+    // shell that exists on every runner, and zsh is absent from Linux CI.
+    const shell = join(root, "bash");
     await writeFile(
       shell,
-      `#!/bin/zsh\nchpwd_functions=(wt_probe_hook)\nwt_probe_hook() { export WT_PROBE_APPLIED="$PWD"; unset WT_PROBE_STALE }\neval "$2"\n`,
+      `#!/bin/bash\nPROMPT_COMMAND='export WT_PROBE_APPLIED="$PWD"; unset WT_PROBE_STALE'\neval "$2"\n`,
       { mode: 0o755 },
     );
 
