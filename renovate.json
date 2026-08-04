@@ -26,6 +26,10 @@
       "groupName": "GitHub Actions"
     },
     {
+      "matchManagers": ["gomod"],
+      "groupName": "Go modules"
+    },
+    {
       "matchManagers": ["npm"],
       "groupName": "npm packages"
     },

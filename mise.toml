@@ -10,11 +10,17 @@ HK_MISE = "1"
 enter = "mise bootstrap --yes --quiet"
 
 [tools]
+actionlint = "1.7.12"
 golangci-lint = "2.12.2"
 goreleaser = "2.17.1"
 hk = "1.54.0"
 node = "24"
 "npm:markdownlint-cli2" = "0.23.2"
+"npm:renovate" = { version = "44.5.3", allow_builds = [
+  "re2",
+], trust_policy_excludes = [
+  "@yarnpkg/libzip@3.2.2",
+] }
 
 [tasks.bootstrap]
 description = "Install pi dependencies and git hooks"
@@ -72,6 +78,8 @@ depends = ["check-versions"]
 run = [
     "go mod tidy -diff",
     "golangci-lint run ./...",
+    "actionlint",
+    "renovate-config-validator",
     "markdownlint-cli2",
     "npm --prefix plugins/pi run lint",
     "npm --prefix plugins/pi run typecheck",
