@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/huh"
+	"charm.land/bubbles/v2/key"
+	"charm.land/huh/v2"
 	"github.com/mattn/go-isatty"
 
 	"github.com/thurstonsand/wt/internal/worktree"
@@ -74,14 +74,18 @@ func pickPruneItems(stale []worktree.StaleWorktree, branchResults []repoBranches
 	km.MultiSelect.SelectAll = key.NewBinding(key.WithKeys("ctrl+a"), key.WithHelp("ctrl+a", "all"))
 	km.MultiSelect.SelectNone = key.NewBinding(key.WithKeys("ctrl+a"), key.WithHelp("ctrl+a", "none"), key.WithDisabled())
 	km.MultiSelect.Next = key.NewBinding(key.WithKeys("enter", "tab"), key.WithHelp("enter", "confirm"))
+	km.MultiSelect.Submit = km.MultiSelect.Next
 
+	// huh sizes the multiselect viewport one line short of its options, hiding the
+	// last entry; the explicit height reclaims that line.
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewMultiSelect[int]().
 				Title("Select items to prune").
 				Options(opts...).
 				Value(&selected).
-				Filterable(false),
+				Filterable(false).
+				Height(len(opts) + 1),
 		),
 	).WithKeyMap(km)
 
