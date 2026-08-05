@@ -15,7 +15,7 @@ mise run build          # Build binary to bin/wt
 mise run test           # Run unit tests
 mise run test-int       # Run unit+integration tests (//go:build integration)
 mise run test-coverage  # Generate coverage.html
-mise run lint           # go mod tidy -diff, golangci-lint, actionlint, markdownlint-cli2
+mise run lint           # version consistency, go mod tidy -diff, golangci-lint, actionlint, markdownlint-cli2
 mise run lint-fix       # Auto-fix lint issues
 mise run wt -- [ARGS]   # Run wt with arguments: mise run wt -- --version
 mise run install        # Build and copy to $(go env GOPATH)/bin

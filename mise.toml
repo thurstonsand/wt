@@ -40,11 +40,23 @@ quiet = true
 [tasks.check-versions]
 description = "Check tool version files for consistency"
 run = '''
+status=0
+
 go_mod_version="$(awk '/^go [0-9]/ {print $2; exit}' go.mod)"
 go_version="$(tr -d '[:space:]' < .go-version)"
 if [ "$go_mod_version" != "$go_version" ]; then
   echo "wt: go.mod ($go_mod_version) and .go-version ($go_version) disagree — sync them" >&2
+  status=1
 fi
+
+changelog_version="$(sed -n 's/^## v\([0-9][0-9.]*\)$/\1/p' CHANGELOG.md | head -1)"
+plugin_version="$(sed -n 's/^  "version": "\([^"]*\)",$/\1/p' plugins/wt/.claude-plugin/plugin.json)"
+if [ "$plugin_version" != "$changelog_version" ]; then
+  echo "wt: plugin.json ($plugin_version) and CHANGELOG.md ($changelog_version) disagree — bump plugins/wt/.claude-plugin/plugin.json" >&2
+  status=1
+fi
+
+exit "$status"
 '''
 
 [tasks.build]

@@ -45,9 +45,11 @@ Rules:
 
 Completion criterion: every commit from step 1 is either represented in a bullet or consciously excluded as internal — none left unexamined.
 
-## 3. Write CHANGELOG.md
+## 3. Write CHANGELOG.md and bump the Claude Code plugin
 
-Prepend the section below the preamble. Lint after:
+Prepend the section below the preamble, then set the same version in `plugins/wt/.claude-plugin/plugin.json`. The two must always agree — `mise run check-versions` fails when they drift, and the marketplace serves the plugin from the default branch, so a stale version there is what users install.
+
+Lint after:
 
 ```bash
 mise run lint
@@ -55,10 +57,10 @@ mise run lint
 
 ## 4. Commit the changelog
 
-A dedicated commit, nothing else in it:
+A dedicated commit carrying both version files, nothing else in it:
 
 ```bash
-git commit CHANGELOG.md -m "docs(changelog): vX.Y.Z"
+git commit CHANGELOG.md plugins/wt/.claude-plugin/plugin.json -m "docs(changelog): vX.Y.Z"
 ```
 
 ## 5. Tag the release
