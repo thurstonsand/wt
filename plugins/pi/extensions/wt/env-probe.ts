@@ -50,12 +50,13 @@ function runProbe(shellPath: string, script: string, cwd: string): Promise<strin
     // ("can't change option: zle") and hooks chatter on every directory change.
     const child = spawn(shellPath, ["-ilc", script], {
       cwd,
+      detached: true,
       shell: false,
       stdio: ["ignore", "pipe", "ignore"],
     });
     const timer = setTimeout(() => {
       timedOut = true;
-      child.kill("SIGKILL");
+      if (child.pid !== undefined) process.kill(-child.pid, "SIGKILL");
     }, PROBE_TIMEOUT_MS);
 
     let stdout = "";
@@ -71,7 +72,10 @@ function runProbe(shellPath: string, script: string, cwd: string): Promise<strin
     });
     child.on("close", (code) => {
       clearTimeout(timer);
-      if (timedOut) reject(new Error(`${basename(shellPath)} did not answer within 5s`));
+      if (timedOut)
+        reject(
+          new Error(`${basename(shellPath)} did not answer within ${PROBE_TIMEOUT_MS / 1000}s`),
+        );
       else if (spawnError) reject(spawnError);
       else if (code !== 0) reject(new Error(`${basename(shellPath)} exited with code ${code}`));
       else resolve(stdout);
