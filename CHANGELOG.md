@@ -2,6 +2,12 @@
 
 # Changelog
 
+## v1.14.1
+
+### Fixed
+
+- Moving a live session with the `@thurstonsand/pi-wt` extension no longer suspends pi in the background with `zsh: suspended (tty input)`. The environment probe now runs without a controlling terminal, so it cannot take the terminal away from pi.
+
 ## v1.14.0
 
 ### Added
