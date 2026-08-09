@@ -13,10 +13,11 @@ If `mise` is unavailable, inform the user. Always prefer these tasks over runnin
 ```bash
 mise run build          # Build binary to bin/wt
 mise run test           # Run unit tests
-mise run test-int       # Run unit+integration tests (//go:build integration)
-mise run test-coverage  # Generate coverage.html
-mise run lint           # version consistency, go mod tidy -diff, golangci-lint, actionlint, markdownlint-cli2
-mise run lint-fix       # Auto-fix lint issues
+mise run test:int       # Run unit+integration tests (//go:build integration)
+mise run test:coverage  # Generate coverage.html
+mise run lint           # Every lint:* check at once
+mise run lint:go        # Or one: lint:versions, lint:go, lint:actions, lint:markdown, lint:pi
+mise run fix            # Auto-fix lint and formatting issues
 mise run wt -- [ARGS]   # Run wt with arguments: mise run wt -- --version
 mise run install        # Build and copy to $(go env GOPATH)/bin
 mise run update-deps    # Upgrade Go modules + pinned tools, refresh lockfiles

@@ -47,7 +47,7 @@ Completion criterion: every commit from step 1 is either represented in a bullet
 
 ## 3. Write CHANGELOG.md and bump the Claude Code plugin
 
-Prepend the section below the preamble, then set the same version in `plugins/wt/.claude-plugin/plugin.json`. The two must always agree — `mise run check-versions` fails when they drift, and the marketplace serves the plugin from the default branch, so a stale version there is what users install.
+Prepend the section below the preamble, then set the same version in `plugins/wt/.claude-plugin/plugin.json`. The two must always agree — `mise run lint:versions` fails when they drift, and the marketplace serves the plugin from the default branch, so a stale version there is what users install.
 
 Lint after:
 

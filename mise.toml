@@ -37,7 +37,7 @@ sources = [
 outputs = ["plugins/pi/node_modules/.package-lock.json", ".git/hooks/pre-commit"]
 quiet = true
 
-[tasks.check-versions]
+[tasks."lint:versions"]
 description = "Check tool version files for consistency"
 run = '''
 status=0
@@ -70,14 +70,14 @@ run = [
     "npm --prefix plugins/pi test",
 ]
 
-[tasks.test-int]
+[tasks."test:int"]
 description = "Run unit+integration tests"
 run = [
     "go test -tags=integration -v ./...",
     "npm --prefix plugins/pi test",
 ]
 
-[tasks.test-coverage]
+[tasks."test:coverage"]
 description = "Generate coverage.html"
 run = [
     "go test -tags=integration -coverprofile=coverage.out ./...",
@@ -86,19 +86,34 @@ run = [
 
 [tasks.lint]
 description = "Run Go, Markdown, and pi extension checks"
-depends = ["check-versions"]
+depends = ["lint:*"]
+
+[tasks."lint:go"]
+description = "Lint Go sources and verify go.mod is tidy"
+run = ["go mod tidy -diff", "golangci-lint run ./..."]
+
+[tasks."lint:actions"]
+description = "Lint GitHub Actions workflows"
+run = "actionlint"
+
+[tasks."lint:renovate"]
+description = "Validate dependency update configuration"
+run = "renovate-config-validator"
+
+[tasks."lint:markdown"]
+description = "Lint Markdown"
+run = "markdownlint-cli2"
+
+[tasks."lint:pi"]
+description = "Lint and type-check the pi extension"
 run = [
-    "go mod tidy -diff",
-    "golangci-lint run ./...",
-    "actionlint",
-    "renovate-config-validator",
-    "markdownlint-cli2",
     "npm --prefix plugins/pi run lint",
     "npm --prefix plugins/pi run typecheck",
 ]
 
-[tasks.lint-fix]
-description = "Auto-fix lint issues"
+# Deliberately outside the `lint:` group: `lint` expands `lint:*`, and the fixer rewrites files.
+[tasks.fix]
+description = "Auto-fix lint and formatting issues"
 run = [
     "go mod tidy",
     "golangci-lint run --fix ./...",
