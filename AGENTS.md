@@ -31,6 +31,7 @@ see @CONTEXT.md for domain definitions for this project.
 - parent/child relationships between branches
 - config file for behavioral options
 - Claude Code integration: SKILL.md, hooks
+- pi integration: SKILL.md, `/wt` and `/mv` session migration
 - shell integration: completion, `wt cd`, auto-cd
 - global prune of orphaned dirs/branches
 

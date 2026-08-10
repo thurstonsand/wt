@@ -24,11 +24,15 @@
   },
   "files": [
     "extensions",
+    "skills",
     "README.md"
   ],
   "pi": {
     "extensions": [
       "./extensions/wt.ts"
+    ],
+    "skills": [
+      "./skills"
     ]
   },
   "scripts": {

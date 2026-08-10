@@ -4,7 +4,7 @@
 
 - **Me** / **I**: The author of `wt` and its primary human user.
 - **You**: The coding agent working on `wt` itself.
-- **The agent**: A coding agent that _uses_ `wt` to manage its own worktrees — via the Claude Code plugin hooks (`EnterWorktree`) or the bundled skill (`SKILL.md`). Distinct from **you**.
+- **The agent**: A coding agent that _uses_ `wt` to manage its own worktrees — via the Claude Code plugin hooks (`EnterWorktree`) or a bundled skill (`SKILL.md`, one per plugin). Distinct from **you**.
 
 ## Language
 

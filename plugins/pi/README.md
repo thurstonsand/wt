@@ -31,6 +31,10 @@ Move the session as part of a `wt` worktree operation:
 /wt rebranch <branch> [flags]
 ```
 
+## Skill
+
+The package ships the `wt` skill teaching the agent the worktree workflows and when to hand an operation back to you as a `/wt` or `/mv` command. Disable it from `pi config` if you only want `/mv`.
+
 ## Development
 
 ```bash

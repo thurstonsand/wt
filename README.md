@@ -176,7 +176,7 @@ The plugin also registers `WorktreeCreate` / `WorktreeRemove` hooks so Claude Co
 pi install npm:@thurstonsand/pi-wt
 ```
 
-The extension provides `/mv <dir>` for moving a live session to any directory. When `wt` is installed, it also provides `/wt fork`, `checkout`/`co`, `rm`, `merge`, and `rebranch` for session-aware worktree operations. Moves preserve the conversation and session ID without restarting pi. See [`plugins/pi/README.md`](plugins/pi/README.md) for details.
+The extension provides `/mv <dir>` for moving a live session to any directory. When `wt` is installed, it also provides `/wt fork`, `checkout`/`co`, `rm`, `merge`, and `rebranch` for session-aware worktree operations. Moves preserve the conversation and session ID without restarting pi. It also includes the `wt` skill, which teaches the agent how to use the tool. See [`plugins/pi/README.md`](plugins/pi/README.md) for details.
 
 ---
 
