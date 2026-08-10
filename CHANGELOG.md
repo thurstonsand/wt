@@ -2,6 +2,12 @@
 
 # Changelog
 
+## v1.15.0
+
+### Added
+
+- The `@thurstonsand/pi-wt` extension now ships a `wt` skill, so the agent knows the worktree workflows and hands operations that relocate the session back to you as `/wt` or `/mv` commands instead of running them in a shell. Turn it off from `pi config` if you only want `/mv`.
+
 ## v1.14.1
 
 ### Fixed
