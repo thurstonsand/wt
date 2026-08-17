@@ -34,7 +34,7 @@ sources = [
     "plugins/pi/package.json",
     "plugins/pi/package-lock.json",
 ]
-outputs = ["plugins/pi/node_modules/.package-lock.json", ".git/hooks/pre-commit"]
+outputs = { auto = true }
 quiet = true
 
 [tasks."lint:versions"]
