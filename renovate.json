@@ -46,6 +46,12 @@
       "groupName": "mise tools"
     },
     {
+      "description": "uuid is feature-complete, not unmaintained",
+      "matchManagers": ["gomod"],
+      "matchPackageNames": ["github.com/google/uuid"],
+      "abandonmentThreshold": null
+    },
+    {
       "matchDatasources": ["github-releases"],
       "matchPackageNames": ["jdx/hk"],
       "groupName": "hk",
