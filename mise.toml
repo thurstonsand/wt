@@ -16,7 +16,7 @@ goreleaser = "2.17.1"
 hk = "1.54.0"
 node = "24"
 "npm:markdownlint-cli2" = "0.23.2"
-"npm:renovate" = { version = "44.5.3", allow_builds = [
+"npm:renovate" = { version = "44.29.4", allow_builds = [
   "re2",
 ], trust_policy_excludes = [
   "@yarnpkg/libzip@3.2.2",

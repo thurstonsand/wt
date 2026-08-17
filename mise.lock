@@ -241,7 +241,7 @@ version = "0.23.2"
 backend = "npm:markdownlint-cli2"
 
 [[tools."npm:renovate"]]
-version = "44.5.3"
+version = "44.29.4"
 backend = "npm:renovate"
 
 [tools."npm:renovate".options]
