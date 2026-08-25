@@ -1,8 +1,5 @@
 min_version = "2026.7.4"
 
-[settings]
-idiomatic_version_file_enable_tools = ["go"]
-
 [env]
 HK_MISE = "1"
 
@@ -10,17 +7,12 @@ HK_MISE = "1"
 enter = "mise bootstrap --yes --quiet"
 
 [tools]
-actionlint = "1.7.12"
-golangci-lint = "2.12.2"
+go = "1.27.0"
+golangci-lint = "2.13.1"
 goreleaser = "2.17.1"
 hk = "1.55.0"
 node = "24"
 "npm:markdownlint-cli2" = "0.23.2"
-"npm:renovate" = { version = "44.29.4", allow_builds = [
-  "re2",
-], trust_policy_excludes = [
-  "@yarnpkg/libzip@3.2.2",
-] }
 
 [tasks.bootstrap]
 description = "Install pi dependencies and git hooks"
@@ -42,10 +34,15 @@ description = "Check tool version files for consistency"
 run = '''
 status=0
 
+# go.mod states the oldest Go that can build wt; mise.toml states the one that does.
+# They are allowed to differ, but the toolchain may never be older than the floor.
 go_mod_version="$(awk '/^go [0-9]/ {print $2; exit}' go.mod)"
-go_version="$(tr -d '[:space:]' < .go-version)"
-if [ "$go_mod_version" != "$go_version" ]; then
-  echo "wt: go.mod ($go_mod_version) and .go-version ($go_version) disagree — sync them" >&2
+toolchain_version="$(awk '/^go = / {gsub(/"/, "", $3); print $3; exit}' mise.toml)"
+if [ -z "$toolchain_version" ]; then
+  echo "wt: mise.toml declares no Go toolchain, so builds fall back to whatever is on PATH" >&2
+  status=1
+elif [ "$(printf '%s\n%s\n' "$go_mod_version" "$toolchain_version" | sort -V | head -1)" != "$go_mod_version" ]; then
+  echo "wt: mise.toml builds with Go $toolchain_version, older than the $go_mod_version floor in go.mod" >&2
   status=1
 fi
 
@@ -95,10 +92,27 @@ run = ["go mod tidy -diff", "golangci-lint run ./..."]
 [tasks."lint:actions"]
 description = "Lint GitHub Actions workflows"
 run = "actionlint"
+tools.actionlint = "1.7.12"
 
 [tasks."lint:renovate"]
 description = "Validate dependency update configuration"
 run = "renovate-config-validator"
+tools.node = "24"
+tools."npm:renovate" = { version = "44.29.4", allow_builds = [
+  "re2",
+], trust_policy_excludes = [
+  "@yarnpkg/libzip@3.2.2",
+] }
+
+[tasks.renovate]
+description = "Run Renovate"
+run = "renovate"
+tools.node = "24"
+tools."npm:renovate" = { version = "44.29.4", allow_builds = [
+  "re2",
+], trust_policy_excludes = [
+  "@yarnpkg/libzip@3.2.2",
+] }
 
 [tasks."lint:markdown"]
 description = "Lint Markdown"
