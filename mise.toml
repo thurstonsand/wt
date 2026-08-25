@@ -10,7 +10,7 @@ enter = "mise bootstrap --yes --quiet"
 go = "1.27.0"
 golangci-lint = "2.13.1"
 goreleaser = "2.17.1"
-hk = "1.55.0"
+hk = "1.56.1"
 node = "24"
 "npm:markdownlint-cli2" = "0.23.2"
 
