@@ -94,9 +94,13 @@ description = "Lint GitHub Actions workflows"
 run = "actionlint"
 tools.actionlint = "1.7.12"
 
+# Renovate's bin shim ends in `exec node`, and mise builds a task's PATH from the shell's
+# pre-activation ordering, which on a Homebrew machine starts at /opt/homebrew/bin -- ahead of the
+# node this task declares. re2 is then compiled by mise's node and loaded by Homebrew's, which
+# fails the ABI check and downgrades regex validation to JavaScript RegExp with only a warning.
 [tasks."lint:renovate"]
 description = "Validate dependency update configuration"
-run = "renovate-config-validator"
+run = "PATH=\"{{ tools.node.path }}/bin:$PATH\" renovate-config-validator"
 tools.node = "24"
 tools."npm:renovate" = { version = "44.39.1", allow_builds = [
   "re2",
@@ -106,7 +110,7 @@ tools."npm:renovate" = { version = "44.39.1", allow_builds = [
 
 [tasks.renovate]
 description = "Run Renovate"
-run = "renovate"
+run = "PATH=\"{{ tools.node.path }}/bin:$PATH\" renovate"
 tools.node = "24"
 tools."npm:renovate" = { version = "44.39.1", allow_builds = [
   "re2",
