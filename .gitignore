@@ -25,3 +25,6 @@ vendor/
 
 # Node
 node_modules/
+
+# Amp
+.amp/portals/*
