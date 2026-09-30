@@ -44,15 +44,15 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.10",
-    "@earendil-works/pi-coding-agent": "^0.84.1",
-    "@earendil-works/pi-tui": "^0.84.1",
+    "@earendil-works/pi-coding-agent": "^0.99.1",
+    "@earendil-works/pi-tui": "^0.99.1",
     "@types/node": "^24.13.3",
     "typescript": "^7.0.0",
     "vitest": "^4.1.11"
   },
   "peerDependencies": {
-    "@earendil-works/pi-coding-agent": ">=0.80.6",
-    "@earendil-works/pi-tui": ">=0.80.6"
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
   },
   "publishConfig": {
     "access": "public"
