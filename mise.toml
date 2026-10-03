@@ -102,7 +102,7 @@ tools.actionlint = "1.7.12"
 description = "Validate dependency update configuration"
 run = "PATH=\"{{ tools.node.path }}/bin:$PATH\" renovate-config-validator"
 tools.node = "24"
-tools."npm:renovate" = { version = "44.125.2", allow_builds = [
+tools."npm:renovate" = { version = "44.126.0", allow_builds = [
   "re2",
 ], trust_policy_excludes = [
   "@yarnpkg/libzip@3.2.2",
@@ -112,7 +112,7 @@ tools."npm:renovate" = { version = "44.125.2", allow_builds = [
 description = "Run Renovate"
 run = "PATH=\"{{ tools.node.path }}/bin:$PATH\" renovate"
 tools.node = "24"
-tools."npm:renovate" = { version = "44.125.2", allow_builds = [
+tools."npm:renovate" = { version = "44.126.0", allow_builds = [
   "re2",
 ], trust_policy_excludes = [
   "@yarnpkg/libzip@3.2.2",
