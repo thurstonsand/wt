@@ -12,7 +12,6 @@
   "dependencyDashboard": true,
   "timezone": "America/New_York",
   "labels": ["dependencies"],
-  "schedule": ["* * * * 1"],
   "customManagers": [
     {
       "customType": "regex",
