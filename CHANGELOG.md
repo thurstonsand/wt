@@ -2,6 +2,12 @@
 
 # Changelog
 
+## v1.15.1
+
+### Changed
+
+- The `@thurstonsand/pi-wt` extension now accepts whichever pi is hosting it instead of requiring pi 0.80.6 or later, so installing it next to a pi prerelease or an older pi no longer reports an unmet peer dependency. It is verified against pi 1.0.
+
 ## v1.15.0
 
 ### Added
