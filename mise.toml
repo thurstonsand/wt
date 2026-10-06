@@ -10,7 +10,7 @@ enter = "mise bootstrap --yes --quiet"
 go = "1.27.1"
 golangci-lint = "2.14.0"
 goreleaser = "2.18.2"
-hk = "2.4.0"
+hk = "2.5.0"
 node = "24"
 "npm:markdownlint-cli2" = "0.23.3"
 
@@ -102,7 +102,7 @@ tools.actionlint = "1.7.12"
 description = "Validate dependency update configuration"
 run = "PATH=\"{{ tools.node.path }}/bin:$PATH\" renovate-config-validator"
 tools.node = "24"
-tools."npm:renovate" = { version = "44.126.0", allow_builds = [
+tools."npm:renovate" = { version = "44.132.2", allow_builds = [
   "re2",
 ], trust_policy_excludes = [
   "@yarnpkg/libzip@3.2.2",
@@ -112,7 +112,7 @@ tools."npm:renovate" = { version = "44.126.0", allow_builds = [
 description = "Run Renovate"
 run = "PATH=\"{{ tools.node.path }}/bin:$PATH\" renovate"
 tools.node = "24"
-tools."npm:renovate" = { version = "44.126.0", allow_builds = [
+tools."npm:renovate" = { version = "44.132.2", allow_builds = [
   "re2",
 ], trust_policy_excludes = [
   "@yarnpkg/libzip@3.2.2",
