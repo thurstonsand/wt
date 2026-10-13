@@ -2,6 +2,13 @@
 
 # Changelog
 
+## v1.15.2
+
+### Fixed
+
+- `/wt rebranch` with the `@thurstonsand/pi-wt` extension no longer leaves pi unable to start subprocesses on Bun-based installs, which showed up as `ENOENT: no such file or directory, posix_spawn` errors from other extensions after the worktree was renamed.
+- Moving a live session out of a directory that was renamed or deleted now loads the destination's shell environment instead of warning that it could not be loaded. Applies to `/mv` and every relocating `/wt` command.
+
 ## v1.15.1
 
 ### Changed
