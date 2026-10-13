@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
-import { basename } from "node:path";
+import { existsSync } from "node:fs";
+import { basename, dirname } from "node:path";
 import type { Readable } from "node:stream";
 import {
   applyEnvDelta,
@@ -96,7 +97,12 @@ export async function reconcileDirectoryEnv(
   const script = probeScript(shellPath, newCwd);
   if (!script) return undefined;
 
-  const delta = computeEnvDelta(parseProbeOutput(await runProbe(shellPath, script, oldCwd)));
+  // `wt rebranch --move` has already renamed the old directory away, so its
+  // hooks can only unload from the nearest directory that still exists.
+  let probeCwd = oldCwd;
+  while (!existsSync(probeCwd)) probeCwd = dirname(probeCwd);
+
+  const delta = computeEnvDelta(parseProbeOutput(await runProbe(shellPath, script, probeCwd)));
   applyEnvDelta(delta, process.env);
   return delta;
 }

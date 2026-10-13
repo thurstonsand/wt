@@ -33,6 +33,11 @@ export async function migrateSession(
     return;
   }
 
+  // Bun spawns every child process by chdir-ing to the cwd path it last saw, so
+  // once wt moves or removes the old directory, nothing in pi (this extension,
+  // other extensions' session_start handlers) could spawn a subprocess again.
+  process.chdir(migration.newCwd);
+
   let result: { cancelled: boolean };
   try {
     result = await ctx.switchSession(migration.newPath, {

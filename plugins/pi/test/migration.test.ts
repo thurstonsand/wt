@@ -1,8 +1,9 @@
-import { mkdir, mkdtemp, readFile, unlink, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, realpath, unlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
-import { SessionManager } from "@earendil-works/pi-coding-agent";
+import { type ExtensionCommandContext, SessionManager } from "@earendil-works/pi-coding-agent";
 import { afterEach, describe, expect, it } from "vitest";
+import { migrateSession } from "../extensions/wt/migration.ts";
 import { pathContains } from "../extensions/wt/paths.ts";
 import {
   discardPreparedMigration,
@@ -115,6 +116,32 @@ describe("session migration", () => {
 
     await expect(readFile(migration.newPath, "utf8")).rejects.toThrow();
     expect(await readFile(oldPath, "utf8")).toContain('"id":"session-id"');
+  });
+
+  it("moves the process into the destination before pi starts the migrated session", async () => {
+    const root = await mkdtemp(join(tmpdir(), "pi-wt-"));
+    process.env.PI_CODING_AGENT_DIR = join(root, "agent");
+    const { manager } = await fixtureSession(root);
+    const destination = join(root, "destination");
+    await mkdir(destination, { recursive: true });
+    const original = process.cwd();
+    let cwdAtSwitch: string | undefined;
+    const ctx = {
+      sessionManager: manager,
+      ui: { notify: () => {} },
+      switchSession: async () => {
+        cwdAtSwitch = process.cwd();
+        return { cancelled: true };
+      },
+    } as unknown as ExtensionCommandContext;
+
+    try {
+      await migrateSession(ctx, destination);
+    } finally {
+      process.chdir(original);
+    }
+
+    expect(cwdAtSwitch).toBe(await realpath(destination));
   });
 
   it("serializes a snapshot without changing lineage", async () => {

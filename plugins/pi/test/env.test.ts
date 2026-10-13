@@ -140,6 +140,22 @@ describe("directory environment reconciliation", () => {
     expect(process.env.WT_PROBE_STALE).toBeUndefined();
   });
 
+  it("still probes after the old directory was moved away", async () => {
+    const root = await mkdtemp(join(tmpdir(), "pi-wt-env-"));
+    const destination = join(root, "destination");
+    await mkdir(destination);
+    const shell = join(root, "bash");
+    await writeFile(
+      shell,
+      `#!/bin/bash\nPROMPT_COMMAND='export WT_PROBE_APPLIED="$PWD"'\neval "$2"\n`,
+      { mode: 0o755 },
+    );
+
+    const delta = await reconcileDirectoryEnv(join(root, "renamed-away"), destination, shell);
+
+    expect(delta?.set.WT_PROBE_APPLIED).toBe(destination);
+  });
+
   it("fails loudly enough to be caught when the shell cannot run", async () => {
     await expect(reconcileDirectoryEnv("/tmp", "/tmp", "/nonexistent/zsh")).rejects.toThrow();
   });
