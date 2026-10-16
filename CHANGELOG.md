@@ -2,6 +2,12 @@
 
 # Changelog
 
+## v1.15.3
+
+### Fixed
+
+- The "Switched session to …" notice from the `@thurstonsand/pi-wt` extension now follows pi's `outputPad` setting, so it lines up with the rest of the transcript instead of sitting at the left edge.
+
 ## v1.15.2
 
 ### Fixed
