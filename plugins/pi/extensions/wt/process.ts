@@ -23,6 +23,13 @@ export class WtError extends Error {
   }
 }
 
+// Windows Terminal claims `wt` on Windows through an app-execution alias that
+// answers unknown arguments with a blocking message box, so there we only ever
+// call the `git-wt` copy shipped alongside `wt`.
+function wtBinary(): string {
+  return process.platform === "win32" ? "git-wt" : "wt";
+}
+
 // `wt` reports its cd target on fd 3 (see internal/shell/wrapper.go), so we run
 // it with a fourth stdio entry to capture that channel.
 //
@@ -64,7 +71,8 @@ export function execWt(args: string[], cwd: string): Promise<WtResult> {
       return cd;
     };
 
-    const child = spawn("wt", args, {
+    const binary = wtBinary();
+    const child = spawn(binary, args, {
       cwd,
       shell: false,
       stdio: ["ignore", "pipe", "pipe", cdFd],
@@ -93,7 +101,8 @@ export function execWt(args: string[], cwd: string): Promise<WtResult> {
         resolve({
           stdout,
           stderr:
-            stderr || (error.code === "ENOENT" ? "wt binary not found on PATH" : error.message),
+            stderr ||
+            (error.code === "ENOENT" ? `${binary} binary not found on PATH` : error.message),
           code: 127,
           ...(error.code ? { spawnErrorCode: error.code } : {}),
         });
