@@ -3,7 +3,8 @@ version: 2
 project_name: wt
 
 builds:
-  - id: wt
+  - &build
+    id: wt
     main: .
     binary: wt
     env:
@@ -20,11 +21,18 @@ builds:
     ldflags:
       - -s -w -X github.com/thurstonsand/wt/internal/cmd.version=v{{ .Version }}
 
+  # The same binary under the name git dispatches `git wt` to. On Windows it is
+  # the only usable name, since Windows Terminal claims `wt`.
+  - <<: *build
+    id: git-wt
+    binary: git-wt
+
 notarize:
   macos:
     - enabled: '{{ isEnvSet "MACOS_SIGN_P12" }}'
       ids:
         - wt
+        - git-wt
       sign:
         certificate: "{{ .Env.MACOS_SIGN_P12 }}"
         password: "{{ .Env.MACOS_SIGN_PASSWORD }}"
@@ -39,6 +47,7 @@ archives:
   - id: wt
     ids:
       - wt
+      - git-wt
     formats:
       - tar.gz
     format_overrides:
@@ -66,6 +75,7 @@ homebrew_casks:
       - wt
     binaries:
       - wt
+      - git-wt
     repository:
       owner: thurstonsand
       name: homebrew-tap

@@ -25,6 +25,12 @@ mise run install
 
 If you have mise's shell activation, `mise bootstrap` will run automatically after you trust the repo.
 
+Every release archive also ships the binary as `git-wt`, so `git wt <command>` works anywhere `wt <command>` does. Use `git wt -h` for help; git claims `--help` for its own man pages.
+
+### Windows
+
+Windows is unsupported and untested. There, `wt` collides with Windows Terminal's `wt.exe`, so put `git-wt.exe` from the [release](https://github.com/thurstonsand/wt/releases) zip on your `PATH` and use `git wt` instead; the pi extension calls `git-wt` on Windows for the same reason. `wt cd` and auto-cd need [shell integration](#shell-integration), which only exists for bash and zsh.
+
 ## Shell integration
 
 Add one line to your rc file:
