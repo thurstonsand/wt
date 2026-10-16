@@ -2,6 +2,16 @@
 
 # Changelog
 
+## v1.16.0
+
+### Added
+
+- Every release archive and the Homebrew cask now also install the binary as `git-wt`, so `git wt <command>` works wherever `wt <command>` does. Use `git wt -h` for help, since git claims `--help`.
+
+### Fixed
+
+- On Windows, the `@thurstonsand/pi-wt` extension now calls `git-wt` instead of `wt`, so loading it no longer pops Windows Terminal's blocking help dialog when Windows Terminal's `wt.exe` alias is first on `PATH`. Windows remains unsupported and untested; see the README.
+
 ## v1.15.3
 
 ### Fixed
