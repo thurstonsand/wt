@@ -69,6 +69,13 @@
       "matchDatasources": ["npm"],
       "matchPackageNames": ["@earendil-works/**"],
       "minimumReleaseAge": null
+    },
+    {
+      "description": "Pi updates raise the devDependency floors so pi-wt is developed against the Pi it tracks. The peerDependencies stay \"*\" so pi-wt accepts whichever Pi hosts it",
+      "matchDatasources": ["npm"],
+      "matchPackageNames": ["@earendil-works/**"],
+      "matchDepTypes": ["devDependencies"],
+      "rangeStrategy": "bump"
     }
   ]
 }
