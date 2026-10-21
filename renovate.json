@@ -4,11 +4,12 @@
     "config:recommended",
     "customManagers:biomeVersions",
     ":configMigration",
-    "security:minimumReleaseAgeNpm",
     "abandonments:recommended",
     ":enableVulnerabilityAlertsWithAdditionalLabel(security)"
   ],
   "dependencyDashboard": true,
+  "minimumReleaseAge": "3 days",
+  "internalChecksFilter": "strict",
   "timezone": "America/New_York",
   "labels": ["dependencies"],
   "lockFileMaintenance": {
@@ -65,7 +66,7 @@
       "allowedVersions": "<25"
     },
     {
-      "description": "pi-wt follows Pi releases as they ship, so Pi skips the minimum release age that holds every other npm package",
+      "description": "pi-wt follows Pi releases as they ship, so Pi skips the minimum release age that holds every other dependency",
       "matchDatasources": ["npm"],
       "matchPackageNames": ["@earendil-works/**"],
       "minimumReleaseAge": null
