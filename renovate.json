@@ -4,6 +4,7 @@
     "config:recommended",
     "customManagers:biomeVersions",
     ":configMigration",
+    ":maintainLockFilesWeekly",
     "abandonments:recommended",
     ":enableVulnerabilityAlertsWithAdditionalLabel(security)"
   ],
@@ -12,10 +13,6 @@
   "internalChecksFilter": "strict",
   "timezone": "America/New_York",
   "labels": ["dependencies"],
-  "lockFileMaintenance": {
-    "enabled": true,
-    "schedule": ["at any time"]
-  },
   "customManagers": [
     {
       "customType": "regex",
