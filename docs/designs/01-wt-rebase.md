@@ -229,16 +229,16 @@ Examples:
 
 ## Edge Cases
 
-| Scenario                     | Behavior                                      |
-| ---------------------------- | --------------------------------------------- |
-| No commits since fork        | No-op, rebase succeeds immediately            |
-| Worktree has no commits      | Fast-forward to parent (like fresh fork)      |
-| Parent branch deleted        | Error: "parent branch 'X' not found"          |
-| `--onto` same as current     | No-op for metadata, still rebases             |
-| Running rebase twice         | Second rebase continues from first            |
-| Rebase in progress elsewhere | Error: "rebase already in progress"           |
-| Uncommitted changes          | Autostashed, restored after rebase            |
-| Stash pop conflicts          | Stash preserved, user resolves manually       |
+| Scenario                     | Behavior                                 |
+| ---------------------------- | ---------------------------------------- |
+| No commits since fork        | No-op, rebase succeeds immediately       |
+| Worktree has no commits      | Fast-forward to parent (like fresh fork) |
+| Parent branch deleted        | Error: "parent branch 'X' not found"     |
+| `--onto` same as current     | No-op for metadata, still rebases        |
+| Running rebase twice         | Second rebase continues from first       |
+| Rebase in progress elsewhere | Error: "rebase already in progress"      |
+| Uncommitted changes          | Autostashed, restored after rebase       |
+| Stash pop conflicts          | Stash preserved, user resolves manually  |
 
 ## Testing
 

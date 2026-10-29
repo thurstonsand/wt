@@ -6,7 +6,7 @@ Accepted
 
 ## Decision Summary
 
-`wt rebranch <new-branch>` re-seats a **landed** worktree onto a fresh baseline (`origin/<default>`) under a new branch, in the same directory, carrying its uncommitted dirty-state forward. The spent branch is left behind for `prune`. The hard part — and the reason this design is worth recording — is that you *cannot* reliably detect whether a worktree's committed work already landed (squash-merge destroys commit identity; others' merges pollute tree comparisons), so the design deliberately avoids needing to: it carries only uncommitted state and never deletes the old branch.
+`wt rebranch <new-branch>` re-seats a **landed** worktree onto a fresh baseline (`origin/<default>`) under a new branch, in the same directory, carrying its uncommitted dirty-state forward. The spent branch is left behind for `prune`. The hard part — and the reason this design is worth recording — is that you _cannot_ reliably detect whether a worktree's committed work already landed (squash-merge destroys commit identity; others' merges pollute tree comparisons), so the design deliberately avoids needing to: it carries only uncommitted state and never deletes the old branch.
 
 ## Problem Statement
 
@@ -20,7 +20,7 @@ A common parallel-stream lifecycle leaves a worktree stranded:
 
 Today the only path forward is manual git surgery (reset onto fresh main, salvage the delta) — exactly the ugliness `wt` exists to hide. There is no command that says "this stream landed; rebaseline me and let me keep going."
 
-This is the inverse of `prune`: `prune` handles *orphaned branch, no worktree*. This is *landed branch, live worktree, live uncommitted work* — nothing should be deleted, the work should be carried forward.
+This is the inverse of `prune`: `prune` handles _orphaned branch, no worktree_. This is _landed branch, live worktree, live uncommitted work_ — nothing should be deleted, the work should be carried forward.
 
 ## Goals
 
@@ -33,7 +33,7 @@ This is the inverse of `prune`: `prune` handles *orphaned branch, no worktree*. 
 ## Non-Goals
 
 - Automatically carrying committed-but-unmerged ("stray") commits. Deferred to a future `--from <sha>`.
-- Detecting *which* commits landed vs. are stray. Proven impossible (see Design Decision 2).
+- Detecting _which_ commits landed vs. are stray. Proven impossible (see Design Decision 2).
 - A `--flatten` mode. Explored and rejected (see Rejected Alternatives).
 - Cross-repo or batch rebranch.
 
@@ -43,14 +43,14 @@ This is the inverse of `prune`: `prune` handles *orphaned branch, no worktree*. 
 
 `rebranch` swaps the branch under a worktree, rebaselined onto fresh parent. The new branch name is explicit and required (like `fork`/`checkout` taking a name). Default target is the current worktree (cwd); `-w`/`--for-worktree` targets another by name. By default the baseline is the remote's default branch; `--onto <branch>` overrides it (accepts a local branch, a remote-tracking ref, or a bare name resolved against the remote), mirroring `wt rebase --onto`.
 
-The verb won over `resync`/`renew`/`refork`: it is honest about the mechanic (a new branch ref replaces the old one under the same directory) and will not be confused with `rebase` (which preserves your commits). The target flag is spelled `--for-worktree` (not `--in`) because "in" reads ambiguously — it could mean "carry these changes *into* another worktree" rather than "operate *on* this worktree."
+The verb won over `resync`/`renew`/`refork`: it is honest about the mechanic (a new branch ref replaces the old one under the same directory) and will not be confused with `rebase` (which preserves your commits). The target flag is spelled `--for-worktree` (not `--in`) because "in" reads ambiguously — it could mean "carry these changes _into_ another worktree" rather than "operate _on_ this worktree."
 
 ### 2. The impossibility result that shapes everything
 
 You cannot reliably detect whether a worktree's committed work has already landed. Verified empirically against real git:
 
 - **Squash-merge destroys commit identity.** `git cherry`, `git log main..HEAD`, and patch-id matching all report a landed-via-squash commit as still-unmerged. The squashed commit on `main` has a different hash and a combined patch.
-- **Others' merges pollute tree comparison.** `git diff --quiet main HEAD` reports differences whenever another contributor landed work after your PR — files they added exist in `main` but not your branch, so a tree diff reads them as *your deletions*. False positive for "you have stray commits," and actively dangerous if acted on.
+- **Others' merges pollute tree comparison.** `git diff --quiet main HEAD` reports differences whenever another contributor landed work after your PR — files they added exist in `main` but not your branch, so a tree diff reads them as _your deletions_. False positive for "you have stray commits," and actively dangerous if acted on.
 
 Because no query separates "your committed work landed" from "your committed work is unmerged," the design avoids needing the distinction: it carries only **uncommitted** state and **never deletes** the old branch. If committed stray work existed, it survives on the spent branch.
 
@@ -64,8 +64,8 @@ git stash pop --index          # replay the delta, preserving staged/unstaged sp
 git config branch.<new>.wt-parent <default>   # via SetBranchMeta
 ```
 
-- **Why stash, not the staged-merge flow:** `merge --squash` (used by `wt merge --staged`) moves *committed* content between branches. `rebranch`'s premise is that committed content already landed — there is nothing to squash-merge. The thing to carry is the uncommitted delta, which `stash -u` captures and `--squash` ignores entirely.
-- **Why it survives others' merges:** `stash` keeps all committed work (including the landed commits) as the *common base*. `switch -C` brings in fresh parent's full tree, including other contributors' files. `pop` replays only the uncommitted delta on top. No tree comparison happens, so those files never masquerade as deletions. Verified.
+- **Why stash, not the staged-merge flow:** `merge --squash` (used by `wt merge --staged`) moves _committed_ content between branches. `rebranch`'s premise is that committed content already landed — there is nothing to squash-merge. The thing to carry is the uncommitted delta, which `stash -u` captures and `--squash` ignores entirely.
+- **Why it survives others' merges:** `stash` keeps all committed work (including the landed commits) as the _common base_. `switch -C` brings in fresh parent's full tree, including other contributors' files. `pop` replays only the uncommitted delta on top. No tree comparison happens, so those files never masquerade as deletions. Verified.
 - **`--index` preserves the staged/unstaged split** (`MM` stays `MM`), matching the WYSIWYG-transfer tenet `fork` upholds. If the index cannot cleanly reapply, fall back to plain `pop` (collapses to unstaged) and warn.
 
 ### 4. Baseline: `origin/<default-branch>`
@@ -86,7 +86,7 @@ After rebranch, the old branch still exists locally (now orphaned from any workt
 
 ### 7. Folder/branch name drift is a normal state
 
-The directory keeps its old name (`wt1`) while the branch becomes `<new-branch>`. This is intentional — the attached Claude session continues from the path it knows. Verified that all resolvers already tolerate the mismatch: `Manager.Get` matches folder name *or* branch name and returns `WorktreePath`; `wt path`, `wt cd`, the `WorktreeCreate` hook (`wt path "$name"`), `rm`, `merge`, and `rebase` all route through it without re-deriving folder from branch. No routing changes required. Cosmetic only: `list` shows the folder name under `NAME` and the new branch under `BRANCH`.
+The directory keeps its old name (`wt1`) while the branch becomes `<new-branch>`. This is intentional — the attached Claude session continues from the path it knows. Verified that all resolvers already tolerate the mismatch: `Manager.Get` matches folder name _or_ branch name and returns `WorktreePath`; `wt path`, `wt cd`, the `WorktreeCreate` hook (`wt path "$name"`), `rm`, `merge`, and `rebase` all route through it without re-deriving folder from branch. No routing changes required. Cosmetic only: `list` shows the folder name under `NAME` and the new branch under `BRANCH`.
 
 ### 8. List surfaces landed via a `STATE` column
 
@@ -94,7 +94,7 @@ Rename the `DIRTY` column to `STATE`, carrying comma-joined words: `dirty`, `lan
 
 ## Edge Cases & Failure Modes
 
-- **`stash pop` conflict** (uncommitted edit overlaps a change that landed differently in the squash): follow the `rebase` model — leave the worktree mid-pop with conflict markers, print resolve instructions. Safe because the old branch is retained; nothing is lost. Do *not* roll back.
+- **`stash pop` conflict** (uncommitted edit overlaps a change that landed differently in the squash): follow the `rebase` model — leave the worktree mid-pop with conflict markers, print resolve instructions. Safe because the old branch is retained; nothing is lost. Do _not_ roll back.
 - **`pop --index` cannot reapply cleanly:** fall back to plain `pop`, warn that the staged/unstaged split was collapsed.
 - **No uncommitted changes at all:** rebranch still re-seats onto fresh parent under the new branch (a clean rebaseline). Valid, not an error.
 - **Worktree not landed:** refuse with the specific reason (decision 5).
@@ -110,7 +110,7 @@ Intended as a no-SHA way to carry committed stray work by dissolving it into unc
 
 ### `reset --soft <fresh-parent>` flatten
 
-Rejected: stages *deletion* of files another contributor landed (their files exist in parent, absent from your tree, so the soft reset's tree-diff reads them as your deletions). Silent data loss of others' merged work. Verified.
+Rejected: stages _deletion_ of files another contributor landed (their files exist in parent, absent from your tree, so the soft reset's tree-diff reads them as your deletions). Silent data loss of others' merged work. Verified.
 
 ### Detect-and-refuse on stray commits via tree-diff gate
 

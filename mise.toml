@@ -118,9 +118,14 @@ tools."npm:renovate" = { version = "44.180.0", allow_builds = [
   "@yarnpkg/libzip@3.2.2",
 ] }
 
+# Biome runs from plugins/pi, where its config lives: pointing --config-path there from the root
+# makes Biome reject plugins/pi/biome.json as a second root configuration.
 [tasks."lint:markdown"]
-description = "Lint Markdown"
-run = "markdownlint-cli2"
+description = "Lint and format-check Markdown"
+run = [
+    "markdownlint-cli2",
+    "cd plugins/pi && npx biome check $(git ls-files --cached --others --exclude-standard ':/*.md')",
+]
 
 [tasks."lint:pi"]
 description = "Lint and type-check the pi extension"
@@ -137,6 +142,7 @@ run = [
     "golangci-lint run --fix ./...",
     "markdownlint-cli2 --fix",
     "npm --prefix plugins/pi run format",
+    "cd plugins/pi && npx biome format --write $(git ls-files --cached --others --exclude-standard ':/*.md')",
 ]
 
 [tasks.wt]
