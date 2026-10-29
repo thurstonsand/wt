@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.6.2/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.6.3/schema.json",
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
@@ -10,8 +10,8 @@
     "enabled": true
   },
   "markdown": {
-    "formatter": {
-      "enabled": false
+    "parser": {
+      "frontmatter": true
     }
   },
   "javascript": {
