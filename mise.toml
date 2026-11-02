@@ -153,6 +153,11 @@ run = [
 description = "Run wt with arguments: mise run wt -- --version"
 run = "go run ."
 
+[tasks.release]
+description = "Release a reviewed [Unreleased] as X.Y.Z: commit, tag and push it"
+usage = 'arg "<version>" help="The version to release, as X.Y.Z"'
+run = 'scripts/release.sh "$usage_version"'
+
 [tasks.release-check]
 description = "Validate release configuration and artifacts"
 run = [

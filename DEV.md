@@ -22,6 +22,7 @@ mise run wt -- [ARGS]   # Run wt with arguments: mise run wt -- --version
 mise run install        # Build and copy to $(go env GOPATH)/bin
 mise run update-deps    # Upgrade Go modules + pinned tools, refresh lockfiles
 mise run release-check  # Build snapshot release artifacts and dry-run npm packaging
+mise run release X.Y.Z  # Release [Unreleased] as X.Y.Z: commit, tag, push (see the release skill)
 mise run clean          # Remove build and coverage artifacts
 ```
 
@@ -46,3 +47,7 @@ go test -v -run TestRootCommand ./internal/cmd/...
 ## Testing
 
 Integration tests (`//go:build integration`) should use helpers from `internal/testutil`.
+
+## Changelog
+
+A user-facing change adds its entry under `## [Unreleased]` in `CHANGELOG.md`. Released sections are `## [X.Y.Z] - YYYY-MM-DD`, newest first; `mise run lint:changelog` enforces the format and that the latest release matches `plugins/pi/package.json` and the Claude Code `plugin.json`. `@thurstonsand/pi-wt` ships this file, so Pi shows the entries after an update.

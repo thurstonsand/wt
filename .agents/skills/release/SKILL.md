@@ -1,11 +1,13 @@
 ---
 name: release
-description: Cut a release for wt — bump the version, update the changelog, tag, push, and verify. Use when the user wants to release, cut or publish a version, or tag a release.
+description: Cut a release for wt — review the changelog, run the release task, and verify every channel. Use when the user wants to release, cut or publish a version, or tag a release.
 ---
 
 # Cut a Release
 
-A release starts from an annotated **git tag** whose message is that version's changelog entry, verbatim. Pushing the tag publishes signed binaries to a GitHub Release, updates the Homebrew tap, and publishes the matching `@thurstonsand/pi-wt` version to npm.
+A release is an annotated **git tag** `vX.Y.Z` whose message is that version's changelog section, verbatim. `mise run release X.Y.Z` creates it; pushing it publishes signed binaries to a GitHub Release, updates the Homebrew tap, and publishes the matching `@thurstonsand/pi-wt` version to npm, which ships `CHANGELOG.md` so Pi shows the new entries after an update.
+
+`CHANGELOG.md` follows one standard, checked by `mise run lint:changelog`: `## [Unreleased]` on top, then `## [X.Y.Z] - YYYY-MM-DD` sections, newest first. Changes add their entries under `## [Unreleased]` as they land.
 
 ## 1. Determine the version
 
@@ -14,17 +16,15 @@ git describe --tags --abbrev=0        # last release tag
 git log <last-tag>..HEAD --oneline
 ```
 
-Pick the bump under SemVer: a breaking change → major, any user-facing feature → minor, only fixes → patch. State the resulting `vX.Y.Z` before continuing.
+Release only when something user-facing shipped. Pick the bump under SemVer: a breaking change → major, any user-facing feature → minor, only fixes → patch. State the resulting `X.Y.Z` before continuing.
 
-## 2. Draft the changelog entry
+## 2. Review `## [Unreleased]`
 
-The entry records **user-facing** changes only — what someone running the tool would notice. Exclude internal mechanics: refactors, test/build/lint/CI chores, dependency bumps, anything invisible from outside. A `chore`/`refactor`/`test` commit is out; a `feat`/`fix` is usually in, reworded for the user.
+The section records **user-facing** changes only — what someone running the tool would notice. Exclude internal mechanics: refactors, test/build/lint/CI chores, dependency bumps, anything invisible from outside. A `chore`/`refactor`/`test` commit is out; a `feat`/`fix` is usually in, reworded for the user.
 
-Shape, newest section at the top of the file:
+Shape, under `## [Unreleased]`:
 
 ```markdown
-## vX.Y.Z
-
 <one-line headline — only for a marquee feature; omit the line entirely otherwise>
 
 ### Added
@@ -45,47 +45,25 @@ Rules:
 
 Completion criterion: every commit from step 1 is either represented in a bullet or consciously excluded as internal — none left unexamined.
 
-## 3. Write CHANGELOG.md and bump the Claude Code plugin
+If the section needed edits, commit them as `docs(changelog): …`, push to `main`, and wait for its CI to pass: the release task refuses anything else.
 
-Prepend the section below the preamble, then set the same version in `plugins/wt/.claude-plugin/plugin.json`. The two must always agree — `mise run lint:versions` fails when they drift, and the marketplace serves the plugin from the default branch, so a stale version there is what users install.
-
-Lint after:
+## 3. Run the release task
 
 ```bash
-mise run lint
+mise run release X.Y.Z
 ```
 
-## 4. Commit the changelog
+It refuses unless `main` is checked out, clean, equal to `origin/main` and green in CI, `## [Unreleased]` has entries, and `X.Y.Z` is newer than the latest release; then it runs `mise run release-check`. It then moves the Unreleased entries under `## [X.Y.Z] - <today, UTC>`, writes `X.Y.Z` into `plugins/pi/package.json` (and its lock) and `plugins/wt/.claude-plugin/plugin.json`, commits `chore(release): X.Y.Z`, creates the annotated tag from that section, and pushes `main` and the tag together. The `wt` binary takes its version from the tag at build time.
 
-A dedicated commit carrying both version files, nothing else in it:
-
-```bash
-git commit CHANGELOG.md plugins/wt/.claude-plugin/plugin.json -m "docs(changelog): vX.Y.Z"
-```
-
-## 5. Tag the release
-
-The tag message is the changelog section, verbatim, produced by `scripts/extract-release-notes.sh`.
-
-```bash
-git tag -a vX.Y.Z --cleanup=whitespace -F <(scripts/extract-release-notes.sh vX.Y.Z)
-```
-
-`--cleanup=whitespace` is mandatory. Git's default cleanup treats the `##`/`###` markdown headings as comment lines and strips them, silently gutting the message. Confirm the headings survived:
+Confirm the tag message kept its headings:
 
 ```bash
 git cat-file -p vX.Y.Z | head -20
 ```
 
-## 6. Push
+## 4. Watch publishing
 
-```bash
-git push && git push origin vX.Y.Z
-```
-
-## 7. Watch publishing
-
-Watch the tag-triggered release workflow through completion:
+Watch the tag-triggered release workflow through completion. Its first job fails fast unless the tag, both manifests and the changelog's latest section agree:
 
 ```bash
 gh run list --workflow Release --branch vX.Y.Z --limit 5
@@ -102,7 +80,7 @@ gh run watch <tap-run-id> --repo thurstonsand/homebrew-tap --exit-status
 
 Do not report success until the binary and npm jobs in the release workflow pass **and** the downstream Homebrew cask workflow passes.
 
-## 8. Verify every channel
+## 5. Verify every channel
 
 Prove the Go module tag, GitHub artifacts, Homebrew cask, and npm package all carry the release version:
 
