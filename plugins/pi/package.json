@@ -1,6 +1,6 @@
 {
   "name": "@thurstonsand/pi-wt",
-  "version": "1.16.0",
+  "version": "1.16.1",
   "type": "module",
   "description": "Move live pi sessions between directories and wt worktrees",
   "license": "MIT",

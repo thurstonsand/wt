@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [1.16.1] - 2026-11-02
+
 ### Added
 
 - The `@thurstonsand/pi-wt` package now ships this changelog, so Pi 1.5 and later show what changed under "Extension Updates" on the first launch after an update.
