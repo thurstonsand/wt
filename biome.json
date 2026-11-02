@@ -1,5 +1,8 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.6.4/schema.json",
+  "files": {
+    "includes": ["**", "!.mise/locks"]
+  },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",

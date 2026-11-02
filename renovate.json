@@ -64,6 +64,11 @@
       "allowedVersions": "<25"
     },
     {
+      "description": "mise lock writes .mise/locks for mise.renovate.lock, and Renovate's mise manager regenerates it when it bumps that file. The npm manager would also bump the sidecar's package.json on its own, out of step with its aube-lock.yaml and the digest in mise.renovate.lock",
+      "matchFileNames": [".mise/locks/**"],
+      "enabled": false
+    },
+    {
       "description": "Renovate supports only Node 24 (its engines say ^24.11), so the toolset its own tasks run in stays there while the repo moves on",
       "matchFileNames": ["mise.renovate.toml"],
       "matchPackageNames": ["node"],
