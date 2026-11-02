@@ -3,6 +3,7 @@
   "extends": [
     "config:recommended",
     "customManagers:biomeVersions",
+    "helpers:pinGitHubActionDigests",
     ":configMigration",
     ":maintainLockFilesWeekly",
     "abandonments:recommended",
