@@ -8,7 +8,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-isatty v0.0.24
 	github.com/spf13/cobra v1.10.2
-	go.yaml.in/yaml/v4 v4.0.0-rc.6
+	go.yaml.in/yaml/v4 v4.0.0-rc.7
 )
 
 require (
