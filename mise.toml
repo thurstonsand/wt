@@ -117,6 +117,17 @@ run = [
     "cd plugins/pi && npx biome check $(git ls-files --cached --others --exclude-standard ':/*.md')",
 ]
 
+# `npm ci` installs a lockfile as written and never re-resolves it, so it passes a lockfile that
+# `npm install`, which Renovate runs, can no longer produce. This re-resolves without installing
+# and fails if the result differs. Under mise's Node, since another npm can rewrite it on its own.
+[tasks."lint:lockfile"]
+description = "Check pi-wt's package-lock.json still resolves from its package.json"
+dir = "plugins/pi"
+run = [
+    "npm install --package-lock-only --ignore-scripts --no-audit --no-fund --loglevel=error",
+    "git diff --exit-code -- package-lock.json",
+]
+
 [tasks."lint:pi"]
 description = "Lint and type-check the pi extension"
 run = [
