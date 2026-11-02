@@ -15,7 +15,7 @@ hk = "2.10.0"
 # does not know mise's `jactionlint` shorthand, so the backend is spelled out.
 "aqua:jdx/jactionlint" = "2.4.0"
 shellcheck = "0.11.0"
-node = "24"
+node = "26"
 "npm:markdownlint-cli2" = "0.24.0"
 
 [tasks.bootstrap]
@@ -97,13 +97,15 @@ run = ["go mod tidy -diff", "golangci-lint run ./..."]
 description = "Lint GitHub Actions workflows"
 run = "hk check --all --step jactionlint"
 
-# Renovate's bin shim ends in `exec node`, and mise builds a task's PATH from the shell's
-# pre-activation ordering, which on a Homebrew machine starts at /opt/homebrew/bin -- ahead of the
+# Renovate supports only Node 24 (its engines say ^24.11), so its tasks pin 24 while the rest of
+# the repo develops on 26. Its bin shim also ends in `exec node`, and mise builds a task's PATH from
+# the shell's pre-activation ordering, which on a Homebrew machine starts at /opt/homebrew/bin -- ahead of the
 # node this task declares. re2 is then compiled by mise's node and loaded by Homebrew's, which
 # fails the ABI check and downgrades regex validation to JavaScript RegExp with only a warning.
+# `{{ tools.node.path }}` would name the repo's Node 26, not this task's 24, hence `mise where`.
 [tasks."lint:renovate"]
 description = "Validate dependency update configuration"
-run = "PATH=\"{{ tools.node.path }}/bin:$PATH\" renovate-config-validator"
+run = "PATH=\"$(mise where node@24)/bin:$PATH\" renovate-config-validator"
 tools.node = "24"
 tools."npm:renovate" = { version = "44.198.2", allow_builds = [
   "re2",
@@ -113,7 +115,7 @@ tools."npm:renovate" = { version = "44.198.2", allow_builds = [
 
 [tasks.renovate]
 description = "Run Renovate"
-run = "PATH=\"{{ tools.node.path }}/bin:$PATH\" renovate"
+run = "PATH=\"$(mise where node@24)/bin:$PATH\" renovate"
 tools.node = "24"
 tools."npm:renovate" = { version = "44.198.2", allow_builds = [
   "re2",
