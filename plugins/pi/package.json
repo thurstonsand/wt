@@ -1,6 +1,6 @@
 {
   "name": "@thurstonsand/pi-wt",
-  "version": "0.1.0",
+  "version": "1.16.0",
   "type": "module",
   "description": "Move live pi sessions between directories and wt worktrees",
   "license": "MIT",
@@ -25,7 +25,8 @@
   "files": [
     "extensions",
     "skills",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "pi": {
     "extensions": [
@@ -36,6 +37,7 @@
     ]
   },
   "scripts": {
+    "prepack": "cp ../../CHANGELOG.md CHANGELOG.md",
     "lint": "biome check .",
     "format": "biome format --write .",
     "typecheck": "tsc --noEmit",

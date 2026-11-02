@@ -34,7 +34,7 @@ outputs = { auto = true }
 quiet = true
 
 [tasks."lint:versions"]
-description = "Check tool version files for consistency"
+description = "Check the Go toolchain against go.mod's floor"
 run = '''
 status=0
 
@@ -50,15 +50,12 @@ elif [ "$(printf '%s\n%s\n' "$go_mod_version" "$toolchain_version" | sort -V | h
   status=1
 fi
 
-changelog_version="$(sed -n 's/^## v\([0-9][0-9.]*\)$/\1/p' CHANGELOG.md | head -1)"
-plugin_version="$(sed -n 's/^  "version": "\([^"]*\)",$/\1/p' plugins/wt/.claude-plugin/plugin.json)"
-if [ "$plugin_version" != "$changelog_version" ]; then
-  echo "wt: plugin.json ($plugin_version) and CHANGELOG.md ($changelog_version) disagree — bump plugins/wt/.claude-plugin/plugin.json" >&2
-  status=1
-fi
-
 exit "$status"
 '''
+
+[tasks."lint:changelog"]
+description = "Check CHANGELOG.md's headings and that its latest release is the published version"
+run = "scripts/check-changelog.sh"
 
 [tasks.build]
 description = "Build binary to bin/wt"

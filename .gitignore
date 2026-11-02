@@ -28,3 +28,6 @@ node_modules/
 
 # Amp
 .amp/portals/*
+
+# pi-wt ships the root changelog, copied in by its prepack script
+/plugins/pi/CHANGELOG.md

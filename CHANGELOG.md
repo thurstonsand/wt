@@ -2,7 +2,17 @@
 
 # Changelog
 
-## v1.16.0
+## [Unreleased]
+
+### Added
+
+- The `@thurstonsand/pi-wt` package now ships this changelog, so Pi 1.5 and later show what changed under "Extension Updates" on the first launch after an update.
+
+### Changed
+
+- `@thurstonsand/pi-wt` now installs on Node 24 and anything newer without an engine warning. It used to warn from Node 26 on.
+
+## [1.16.0] - 2026-10-16
 
 ### Added
 
@@ -12,63 +22,63 @@
 
 - On Windows, the `@thurstonsand/pi-wt` extension now calls `git-wt` instead of `wt`, so loading it no longer pops Windows Terminal's blocking help dialog when Windows Terminal's `wt.exe` alias is first on `PATH`. Windows remains unsupported and untested; see the README.
 
-## v1.15.3
+## [1.15.3] - 2026-10-16
 
 ### Fixed
 
 - The "Switched session to …" notice from the `@thurstonsand/pi-wt` extension now follows pi's `outputPad` setting, so it lines up with the rest of the transcript instead of sitting at the left edge.
 
-## v1.15.2
+## [1.15.2] - 2026-10-13
 
 ### Fixed
 
 - `/wt rebranch` with the `@thurstonsand/pi-wt` extension no longer leaves pi unable to start subprocesses on Bun-based installs, which showed up as `ENOENT: no such file or directory, posix_spawn` errors from other extensions after the worktree was renamed.
 - Moving a live session out of a directory that was renamed or deleted now loads the destination's shell environment instead of warning that it could not be loaded. Applies to `/mv` and every relocating `/wt` command.
 
-## v1.15.1
+## [1.15.1] - 2026-10-06
 
 ### Changed
 
 - The `@thurstonsand/pi-wt` extension now accepts whichever pi is hosting it instead of requiring pi 0.80.6 or later, so installing it next to a pi prerelease or an older pi no longer reports an unmet peer dependency. It is verified against pi 1.0.
 
-## v1.15.0
+## [1.15.0] - 2026-08-10
 
 ### Added
 
 - The `@thurstonsand/pi-wt` extension now ships a `wt` skill, so the agent knows the worktree workflows and hands operations that relocate the session back to you as `/wt` or `/mv` commands instead of running them in a shell. Turn it off from `pi config` if you only want `/mv`.
 
-## v1.14.1
+## [1.14.1] - 2026-08-05
 
 ### Fixed
 
 - Moving a live session with the `@thurstonsand/pi-wt` extension no longer suspends pi in the background with `zsh: suspended (tty input)`. The environment probe now runs without a controlling terminal, so it cannot take the terminal away from pi.
 
-## v1.14.0
+## [1.14.0] - 2026-08-04
 
 ### Added
 
 - Moving a live session with the `@thurstonsand/pi-wt` extension now reconciles its environment with the destination, so direnv variables, mise tools, and `PATH` match the new directory instead of staying stale until pi is relaunched. Applies to `/mv` and every relocating `/wt` command.
 
-## v1.13.2
+## [1.13.2] - 2026-07-24
 
 ### Fixed
 
 - `wt merge --staged` now preserves staged, unstaged, and untracked source changes before removing the worktree.
 - Squash and rebase refuse dirty sources unless forced, while preserving dirty target state automatically.
 
-## v1.13.1
+## [1.13.1] - 2026-07-21
 
 ### Fixed
 
 - `@thurstonsand/pi-wt` extension no longer crashes pi while typing a `/wt` command on Bun-based installs.
 
-## v1.13.0
+## [1.13.0] - 2026-07-18
 
 ### Added
 
 - The `@thurstonsand/pi-wt` extension can move a live session to any directory with `/mv`, preserving its conversation and ID without requiring `wt`; `/wt` commands remain available when `wt` is installed.
 
-## v1.12.0
+## [1.12.0] - 2026-07-17
 
 ### Added
 
@@ -80,7 +90,7 @@
 
 - `wt checkout` now returns an existing worktree for the requested branch, allowing session migration to recover after a worktree was created successfully but its session copy failed.
 
-## v1.11.0
+## [1.11.0] - 2026-07-15
 
 ### Changed
 

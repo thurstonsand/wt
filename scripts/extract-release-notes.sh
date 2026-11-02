@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  echo "usage: $0 vX.Y.Z [CHANGELOG.md]" >&2
+  echo "usage: $0 vX.Y.Z|X.Y.Z [CHANGELOG.md]" >&2
 }
 
 if [[ $# -lt 1 || $# -gt 2 ]]; then
@@ -20,11 +20,10 @@ fi
 
 awk -v version="${version}" '
   BEGIN {
-    plain_heading = "## " version
-    tagged_heading = "## v" version
+    heading = "## [" version "] - "
   }
 
-  $0 == plain_heading || $0 == tagged_heading {
+  index($0, heading) == 1 {
     capture = 1
     found = 1
     print
