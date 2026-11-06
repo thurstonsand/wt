@@ -10,7 +10,7 @@ enter = "mise bootstrap --yes --quiet"
 go = "1.27.3"
 golangci-lint = "2.15.0"
 goreleaser = "2.19.0"
-hk = "2.10.0"
+hk = "2.11.1"
 # hk's check and fix hooks run jactionlint, which runs shellcheck over every `run:` script. Renovate
 # does not know mise's `jactionlint` shorthand, so the backend is spelled out.
 "aqua:jdx/jactionlint" = "2.4.0"
