@@ -16,7 +16,7 @@ git describe --tags --abbrev=0        # last release tag
 git log <last-tag>..HEAD --oneline
 ```
 
-Release only when something user-facing shipped. Pick the bump under SemVer: a breaking change → major, any user-facing feature → minor, only fixes → patch. State the resulting `X.Y.Z` before continuing.
+Release only when something user-facing shipped. Pick the bump by the versioning rule in `docs/release.md`. State the resulting `X.Y.Z` before continuing.
 
 ## 2. Review `## [Unreleased]`
 

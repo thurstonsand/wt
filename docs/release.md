@@ -11,6 +11,8 @@ The release workflow runs the Go and Pi extension gates before publishing. GoRel
 
 GoReleaser writes the Homebrew cask through a repository-scoped deploy key stored as `HOMEBREW_TAP_PRIVATE_KEY`. The matching public key has write access only to `thurstonsand/homebrew-tap`.
 
+Versions follow semantic versioning: a release with any new feature (an `Added` entry), a raised floor (a higher minimum Pi, Node, OS, or other dependency version), or anything breaking is at least minor, and breaking is major from 1.0 on; patch is only for fixes and dependency updates.
+
 ## Repository secrets
 
 | Secret                                    | Purpose                                    |
