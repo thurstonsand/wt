@@ -80,10 +80,9 @@ homebrew_casks:
       owner: thurstonsand
       name: homebrew-tap
       branch: main
-      git:
-        url: git@github.com:thurstonsand/homebrew-tap.git
-        private_key: '{{ if isEnvSet "HOMEBREW_TAP_PRIVATE_KEY" }}{{ .Env.HOMEBREW_TAP_PRIVATE_KEY }}{{ end }}'
     homepage: https://github.com/thurstonsand/wt
     description: Friendly Git worktree manager
     license: MIT
-    skip_upload: auto
+    # GoReleaser only writes dist/homebrew/Casks/wt.rb; the release workflow audits it and pushes it
+    # to the tap, as every repo publishing there does.
+    skip_upload: true

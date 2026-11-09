@@ -27,11 +27,33 @@
       "versioningTemplate": "semver-coerced",
       "extractVersionTemplate": "^v(?<version>.+)",
       "autoReplaceStringTemplate": "package://github.com/jdx/hk/releases/download/v{{{newValue}}}/hk@{{{newValue}}}#/{{{depType}}}.pkl"
+    },
+    {
+      "description": "Homebrew/actions tags have four parts (2026.11.02.1), which the github-actions manager truncates to three and then cannot find, so this manager reads the full tag.",
+      "customType": "regex",
+      "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
+      "matchStrings": [
+        "uses: Homebrew/actions/[^@\\s]+@(?:(?<currentDigest>[0-9a-f]{40}) # )?(?<currentValue>\\d+\\.\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "Homebrew/actions",
+      "datasourceTemplate": "github-tags",
+      "versioningTemplate": "loose"
     }
   ],
   "packageRules": [
     {
       "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions"
+    },
+    {
+      "description": "The Homebrew/actions custom manager above owns these pins; the built-in manager would only raise its truncated-tag warning.",
+      "matchManagers": ["github-actions"],
+      "matchPackageNames": ["Homebrew/actions"],
+      "enabled": false
+    },
+    {
+      "matchManagers": ["custom.regex"],
+      "matchDepNames": ["Homebrew/actions"],
       "groupName": "GitHub Actions"
     },
     {
