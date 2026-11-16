@@ -11,16 +11,16 @@ HK_MISE = "1"
 enter = "mise bootstrap --yes --quiet"
 
 [tools]
-go = "1.27.3"
+go = "1.27.4"
 golangci-lint = "2.15.0"
-goreleaser = "2.20.0"
+goreleaser = "2.20.2"
 hk = "2.11.1"
 # hk's check and fix hooks run jactionlint, which runs shellcheck over every `run:` script. Renovate
 # does not know mise's `jactionlint` shorthand, so the backend is spelled out.
-"aqua:jdx/jactionlint" = "2.5.0"
+"aqua:jdx/jactionlint" = "2.6.0"
 shellcheck = "0.11.0"
 node = "26"
-"npm:markdownlint-cli2" = "0.24.0"
+"npm:markdownlint-cli2" = "0.24.1"
 
 [tasks.bootstrap]
 description = "Install pi dependencies and git hooks"
