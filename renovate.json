@@ -9,7 +9,9 @@
     "abandonments:recommended",
     ":enableVulnerabilityAlertsWithAdditionalLabel(security)"
   ],
-  "dependencyDashboard": true,
+  "dependencyDashboard": {
+    "enabled": true
+  },
   "minimumReleaseAge": "3 days",
   "internalChecksFilter": "strict",
   "timezone": "America/New_York",
