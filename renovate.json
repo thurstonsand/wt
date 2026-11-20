@@ -99,11 +99,11 @@
       "minimumReleaseAge": null
     },
     {
-      "description": "Pi updates raise the devDependency floors so pi-wt is developed against the Pi it tracks. The peerDependencies stay \"*\" so pi-wt accepts whichever Pi hosts it",
+      "description": "Pi updates refresh the development lockfile without raising the supported Pi floor. The peerDependencies stay \"*\" so pi-wt accepts whichever Pi hosts it.",
       "matchDatasources": ["npm"],
       "matchPackageNames": ["@earendil-works/**"],
       "matchDepTypes": ["devDependencies"],
-      "rangeStrategy": "bump"
+      "rangeStrategy": "update-lockfile"
     },
     {
       "description": "Pi's docs/packages.md has a package declare the packages Pi provides as peerDependencies at \"*\", so it loads in whichever Pi hosts it. Renovate leaves those peers alone; the devDependencies carry the Pi the package is built against.",
