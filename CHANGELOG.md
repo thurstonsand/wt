@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Building wt from source, including `go install github.com/thurstonsand/wt@latest`, now needs Go 1.26 or newer, up from Go 1.25.12. Older Go downloads 1.26 on its own unless `GOTOOLCHAIN=local` is set. This lets wt take the current Bubble Tea, Lip Gloss, `golang.org/x/sync`, and `golang.org/x/sys` releases. Homebrew and release-archive installs are unaffected.
+
 ## [1.16.1] - 2026-11-02
 
 ### Added
