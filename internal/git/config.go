@@ -99,8 +99,7 @@ func (g *Git) GetBranchesWithParent() (map[string]string, error) {
 
 // IsConfigKeyNotFound returns true if the error indicates a config key was not found.
 func IsConfigKeyNotFound(err error) bool {
-	var execErr *ExecError
-	if errors.As(err, &execErr) {
+	if execErr, ok := errors.AsType[*ExecError](err); ok {
 		return execErr.ExitCode == 1 && execErr.Stderr == ""
 	}
 	return false

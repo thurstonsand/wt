@@ -136,8 +136,7 @@ func evalPath(path string) (string, error) {
 
 // isRemoteMissing returns true if the error indicates the remote doesn't exist.
 func isRemoteMissing(err error) bool {
-	var execErr *git.ExecError
-	if errors.As(err, &execErr) {
+	if execErr, ok := errors.AsType[*git.ExecError](err); ok {
 		return strings.Contains(execErr.Stderr, "does not appear to be a git repository")
 	}
 	return false

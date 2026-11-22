@@ -37,8 +37,7 @@ func TestForkCleanCopiesIncludeOnly(t *testing.T) {
 	r.WriteFile("scratch.txt", "data")
 	r.WriteFile(".worktreeinclude", ".env\n")
 
-	clean := true
-	wt, err := mgr.Fork(ForkOptions{Name: "clean-inc", Clean: &clean})
+	wt, err := mgr.Fork(ForkOptions{Name: "clean-inc", Clean: new(true)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,8 +56,7 @@ func TestForkIncludeCarriesModifiedTrackedFile(t *testing.T) {
 	r.WriteFile("settings.json", "LOCAL OVERRIDE\n")
 	r.WriteFile(".worktreeinclude", "settings.json\n")
 
-	clean := true
-	wt, err := mgr.Fork(ForkOptions{Name: "tracked-mod", Clean: &clean})
+	wt, err := mgr.Fork(ForkOptions{Name: "tracked-mod", Clean: new(true)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,8 +72,7 @@ func TestForkUserLevelInclude(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clean := true
-	wt, err := mgr.Fork(ForkOptions{Name: "user-inc", Clean: &clean})
+	wt, err := mgr.Fork(ForkOptions{Name: "user-inc", Clean: new(true)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -92,8 +89,7 @@ func TestForkWithNegationOverridesInclude(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clean := true
-	wt, err := mgr.Fork(ForkOptions{Name: "negate", Clean: &clean, With: []string{"!.env.local"}})
+	wt, err := mgr.Fork(ForkOptions{Name: "negate", Clean: new(true), With: []string{"!.env.local"}})
 	if err != nil {
 		t.Fatal(err)
 	}

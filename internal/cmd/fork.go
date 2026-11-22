@@ -49,11 +49,9 @@ Include files (patterns in .worktreeinclude, e.g. .env*) are always copied regar
 			}
 
 			if opts.clean {
-				t := true
-				forkOpts.Clean = &t
+				forkOpts.Clean = new(true)
 			} else if opts.noClean {
-				f := false
-				forkOpts.Clean = &f
+				forkOpts.Clean = new(false)
 			}
 
 			wt, err := mgr.Fork(forkOpts)

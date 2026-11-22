@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/thurstonsand/wt/internal/config"
@@ -365,11 +366,10 @@ func TestForkNoCleanWithBaseErrors(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	noClean := false
 	_, err = mgr.Fork(ForkOptions{
 		Name:  "bad",
 		Base:  "develop",
-		Clean: &noClean,
+		Clean: new(false),
 	})
 	if !errors.Is(err, ErrCleanWithBase) {
 		t.Errorf("expected ErrCleanWithBase, got %v", err)
@@ -424,8 +424,7 @@ func TestForkClean(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clean := true
-	wt, err := mgr.Fork(ForkOptions{Name: "clean-fork", Clean: &clean})
+	wt, err := mgr.Fork(ForkOptions{Name: "clean-fork", Clean: new(true)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -470,10 +469,9 @@ func TestForkCleanupDeletesBranchOnFailure(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clean := true
 	_, err = mgr.Fork(ForkOptions{
 		Name:  "fail-fork",
-		Clean: &clean,
+		Clean: new(true),
 		With:  []string{"secret.bin"},
 	})
 	if err == nil {
@@ -495,7 +493,7 @@ func TestForkCleanupDeletesBranchOnFailure(t *testing.T) {
 	}
 	wt, err := mgr.Fork(ForkOptions{
 		Name:  "fail-fork",
-		Clean: &clean,
+		Clean: new(true),
 		With:  []string{"secret.bin"},
 	})
 	if err != nil {
@@ -711,14 +709,7 @@ func TestForkPreservesStagedDeletion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	found := false
-	for _, f := range del {
-		if f == "doomed.txt" {
-			found = true
-			break
-		}
-	}
-	if !found {
+	if !slices.Contains(del, "doomed.txt") {
 		t.Error("deletion should be staged in worktree")
 	}
 }
