@@ -16,14 +16,14 @@ enter = "mise bootstrap --yes --quiet"
 [tools]
 go = "1.27.4"
 golangci-lint = "2.15.0"
-goreleaser = "2.20.2"
+goreleaser = "2.20.3"
 hk = "2.13.0"
 # hk's check and fix hooks run jactionlint, which runs shellcheck over every `run:` script. Renovate
 # does not know mise's `jactionlint` shorthand, so the backend is spelled out.
 "aqua:jdx/jactionlint" = "2.6.0"
 shellcheck = "0.11.0"
 node = "26"
-"npm:markdownlint-cli2" = "0.24.1"
+"npm:markdownlint-cli2" = "0.24.2"
 
 [tasks.bootstrap]
 description = "Install pi dependencies and git hooks"
@@ -61,8 +61,19 @@ exit "$status"
 '''
 
 [tasks."lint:changelog"]
-description = "Check CHANGELOG.md's headings and that its latest release is the published version"
-run = "scripts/check-changelog.sh"
+description = "Check CHANGELOG.md's headings, published version, and compatibility with Pi's reader"
+run = [
+    "scripts/check-changelog.sh",
+    '''node --input-type=module <<'JS'
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { parseChangelog } from './plugins/pi/node_modules/@earendil-works/pi-coding-agent/dist/utils/changelog.js';
+
+const expected = [...readFileSync('CHANGELOG.md', 'utf8').matchAll(/^## \[([\d.]+)\] - /gm)].map((heading) => heading[1]);
+const versions = parseChangelog('CHANGELOG.md').map(({ major, minor, patch }) => `${major}.${minor}.${patch}`);
+assert.deepEqual(versions, expected, 'Pi must recognize every released changelog entry');
+JS''',
+]
 
 [tasks.build]
 description = "Build binary to bin/wt"
@@ -92,6 +103,10 @@ run = [
 [tasks.lint]
 description = "Run Go, Markdown, and pi extension checks"
 depends = ["lint:*"]
+
+[tasks.check]
+description = "Run all lint and consistency checks"
+depends = ["lint"]
 
 [tasks."lint:go"]
 description = "Lint Go sources and verify go.mod is tidy"

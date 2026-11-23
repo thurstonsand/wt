@@ -15,6 +15,7 @@ mise run build          # Build binary to bin/wt
 mise run test           # Run unit tests
 mise run test:int       # Run unit+integration tests (//go:build integration)
 mise run test:coverage  # Generate coverage.html
+mise run check          # Run all lint and consistency checks
 mise run lint           # Every lint:* check at once
 mise run lint:go        # Or one: lint:versions, lint:go, lint:actions, lint:markdown, lint:pi
 mise run fix            # Auto-fix lint and formatting issues
@@ -50,4 +51,4 @@ Integration tests (`//go:build integration`) should use helpers from `internal/t
 
 ## Changelog
 
-A user-facing change adds its entry under `## [Unreleased]` in `CHANGELOG.md`. Released sections are `## [X.Y.Z] - YYYY-MM-DD`, newest first; `mise run lint:changelog` enforces the format and that the latest release matches `plugins/pi/package.json` and the Claude Code `plugin.json`. `@thurstonsand/pi-wt` ships this file, so Pi shows the entries after an update.
+A user-facing change adds its entry under `## [Unreleased]` in `CHANGELOG.md`. Released sections are `## [X.Y.Z] - YYYY-MM-DD`, newest first. `mise run check` includes `lint:changelog`, which checks that the latest release matches `plugins/pi/package.json` and the Claude Code `plugin.json`, and that Pi's reader recognizes every release. `@thurstonsand/pi-wt` ships this file, so Pi shows the entries after an update.
