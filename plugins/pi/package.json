@@ -45,7 +45,7 @@
     "check": "biome check . && tsc --noEmit && vitest run"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.8",
+    "@biomejs/biome": "2.6.9",
     "@earendil-works/pi-coding-agent": "^1.5.2",
     "@earendil-works/pi-tui": "^1.5.2",
     "@types/node": "^24.13.3",
